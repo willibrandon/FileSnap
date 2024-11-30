@@ -1,9 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageId>FileSnap</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>willibrandon</Authors>
+		<Description>FileSnap is a .NET library for capturing, comparing, and restoring file system snapshots.</Description>
+		<RepositoryUrl>https://github.com/willibrandon/FileSnap</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/willibrandon/FileSnap</PackageProjectUrl>
+		<Title>FileSnap is a .NET library for capturing, comparing, and restoring file system snapshots.</Title>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>file-system;backup;restore;snapshot;file-integrity</PackageTags>
+	</PropertyGroup>
 
 </Project>
