@@ -17,6 +17,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eng", "eng", "{A41C1CA1-E118-4397-AEE2-2FB45878A4A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{98BBFA3A-AB0C-47A9-BE7F-0437F948EF65}"
+	ProjectSection(SolutionItems) = preProject
+		ci.yml = ci.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,5 +45,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F63DE2BA-5172-4788-A829-322432D33BBB} = {508C2EFD-05CE-4441-8BBF-E30BB9A53704}
 		{AB406A00-841C-4623-B28C-534E8DE2146B} = {6F641FD6-F279-4AA2-8757-F13404539C93}
+		{98BBFA3A-AB0C-47A9-BE7F-0437F948EF65} = {A41C1CA1-E118-4397-AEE2-2FB45878A4A3}
 	EndGlobalSection
 EndGlobal
