@@ -27,15 +27,15 @@ using FileSnap.Core.Services;
 
 var snapshotService = new SnapshotService(new HashingService());
 var snapshot = await snapshotService.CaptureSnapshot("path/to/directory");
-await snapshotService.SaveSnapshot(snapshot, "path/to/save/snapshot.json");
+await snapshotService.SaveSnapshot(snapshot, "path/to/save/snapshot.fsnap");
 ```
 
 ### Loading and Comparing Snapshots
 
 ```csharp
 var snapshotService = new SnapshotService(new HashingService());
-var beforeSnapshot = await snapshotService.LoadSnapshot("path/to/before/snapshot.json");
-var afterSnapshot = await snapshotService.LoadSnapshot("path/to/after/snapshot.json");
+var beforeSnapshot = await snapshotService.LoadSnapshot("path/to/before/snapshot.fsnap");
+var afterSnapshot = await snapshotService.LoadSnapshot("path/to/after/snapshot.fsnap");
 
 var comparisonService = new ComparisonService();
 var differences = comparisonService.Compare(beforeSnapshot, afterSnapshot);
@@ -45,7 +45,7 @@ var differences = comparisonService.Compare(beforeSnapshot, afterSnapshot);
 
 ```csharp
 var snapshotService = new SnapshotService(new HashingService());
-var snapshot = await snapshotService.LoadSnapshot("path/to/snapshot.json");
+var snapshot = await snapshotService.LoadSnapshot("path/to/snapshot.fsnap");
 
 var restorationService = new RestorationService();
 await restorationService.RestoreSnapshot(snapshot, "path/to/restore/directory");
