@@ -48,7 +48,7 @@ public class SnapshotServiceTests : IDisposable
     {
         // Arrange
         var basePath = Path.Combine(_testBasePath, "LargeDirectoryStructure");
-        CreateLargeDirectoryStructure(basePath, 3, 3);
+        CreateTestDirectoryStructure(basePath, 3, 3);
 
         try
         {
@@ -168,28 +168,6 @@ public class SnapshotServiceTests : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<SnapshotException>(() =>
             _snapshotService.CaptureSnapshot(nonExistentPath));
-    }
-
-    private static void CreateLargeDirectoryStructure(string basePath, int depth, int breadth)
-    {
-        Directory.CreateDirectory(basePath);
-
-        for (int i = 0; i < breadth; i++)
-        {
-            var dirPath = Path.Combine(basePath, $"Dir{i}");
-            Directory.CreateDirectory(dirPath);
-
-            for (int j = 0; j < breadth; j++)
-            {
-                var filePath = Path.Combine(dirPath, $"File{j}.txt");
-                File.WriteAllText(filePath, $"Test content for file {j} in directory {i}");
-            }
-
-            if (depth > 1)
-            {
-                CreateLargeDirectoryStructure(dirPath, depth - 1, breadth);
-            }
-        }
     }
 
     private static void CreateTestDirectoryStructure(string basePath, int depth, int breadth)
