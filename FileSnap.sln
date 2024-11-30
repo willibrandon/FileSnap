@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35514.174
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileSnap.Core", "FileSnap.Core", "{508C2EFD-05CE-4441-8BBF-E30BB9A53704}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileSnap.Tests", "FileSnap.Tests", "{6F641FD6-F279-4AA2-8757-F13404539C93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileSnap.Core", "FileSnap.Core\FileSnap.Core.csproj", "{F63DE2BA-5172-4788-A829-322432D33BBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileSnap.Tests", "FileSnap.Tests\FileSnap.Tests.csproj", "{AB406A00-841C-4623-B28C-534E8DE2146B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F63DE2BA-5172-4788-A829-322432D33BBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F63DE2BA-5172-4788-A829-322432D33BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F63DE2BA-5172-4788-A829-322432D33BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F63DE2BA-5172-4788-A829-322432D33BBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB406A00-841C-4623-B28C-534E8DE2146B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB406A00-841C-4623-B28C-534E8DE2146B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB406A00-841C-4623-B28C-534E8DE2146B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB406A00-841C-4623-B28C-534E8DE2146B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F63DE2BA-5172-4788-A829-322432D33BBB} = {508C2EFD-05CE-4441-8BBF-E30BB9A53704}
+		{AB406A00-841C-4623-B28C-534E8DE2146B} = {6F641FD6-F279-4AA2-8757-F13404539C93}
+	EndGlobalSection
+EndGlobal
