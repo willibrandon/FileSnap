@@ -12,14 +12,14 @@ public interface ISnapshotService
     /// </summary>
     /// <param name="path">The path to capture the snapshot from.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the captured snapshot.</returns>
-    Task<SystemSnapshot> CaptureSnapshot(string path);
+    Task<SystemSnapshot> CaptureSnapshotAsync(string path);
 
     /// <summary>
     /// Loads a snapshot from the specified path.
     /// </summary>
     /// <param name="path">The path to load the snapshot from.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the loaded snapshot.</returns>
-    Task<SystemSnapshot> LoadSnapshot(string path);
+    Task<SystemSnapshot> LoadSnapshotAsync(string path);
 
     /// <summary>
     /// Saves the snapshot to the specified output path.
@@ -27,6 +27,6 @@ public interface ISnapshotService
     /// <param name="snapshot">The snapshot to save.</param>
     /// <param name="outputPath">The output path to save the snapshot to.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task SaveSnapshot(SystemSnapshot snapshot, string outputPath);
+    Task SaveSnapshotAsync(SystemSnapshot snapshot, string outputPath);
 }
 

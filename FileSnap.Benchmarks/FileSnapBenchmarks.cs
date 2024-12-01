@@ -33,8 +33,8 @@ public class FileSnapBenchmarks
         _restorationService = new RestorationService();
 
         // Capture snapshots
-        _smallSnapshot = await _snapshotService.CaptureSnapshot(SmallDirPath);
-        _largeSnapshot = await _snapshotService.CaptureSnapshot(LargeDirPath);
+        _smallSnapshot = await _snapshotService.CaptureSnapshotAsync(SmallDirPath);
+        _largeSnapshot = await _snapshotService.CaptureSnapshotAsync(LargeDirPath);
     }
 
     #region SnapshotService Benchmarks
@@ -45,7 +45,7 @@ public class FileSnapBenchmarks
     [Benchmark]
     public async Task CaptureSmallSnapshot()
     {
-        await _snapshotService!.CaptureSnapshot(SmallDirPath);
+        await _snapshotService!.CaptureSnapshotAsync(SmallDirPath);
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public class FileSnapBenchmarks
     [Benchmark]
     public async Task CaptureLargeSnapshot()
     {
-        await _snapshotService!.CaptureSnapshot(LargeDirPath);
+        await _snapshotService!.CaptureSnapshotAsync(LargeDirPath);
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshot(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
         }
     }
 
@@ -77,7 +77,7 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshot(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
         }
     }
 
@@ -89,8 +89,8 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshot(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
-            await _snapshotService.LoadSnapshot(Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
+            await _snapshotService.LoadSnapshotAsync(Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
         }
     }
 
@@ -102,8 +102,8 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshot(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
-            await _snapshotService.LoadSnapshot(Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
+            await _snapshotService.LoadSnapshotAsync(Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
         }
     }
 
@@ -159,7 +159,7 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshot != null)
         {
-            await _restorationService!.RestoreSnapshot(_smallSnapshot, @"C:\Restored\SmallDir");
+            await _restorationService!.RestoreSnapshotAsync(_smallSnapshot, @"C:\Restored\SmallDir");
         }
     }
 
@@ -171,7 +171,7 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshot != null)
         {
-            await _restorationService!.RestoreSnapshot(_largeSnapshot, @"C:\Restored\LargeDir");
+            await _restorationService!.RestoreSnapshotAsync(_largeSnapshot, @"C:\Restored\LargeDir");
         }
     }
 

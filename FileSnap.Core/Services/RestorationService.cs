@@ -24,7 +24,7 @@ public class RestorationService : IRestorationService
     /// <summary>
     /// Restores a snapshot to the specified target path, optimizing for parallelism and memory usage.
     /// </summary>
-    public async Task RestoreSnapshot(SystemSnapshot snapshot, string targetPath)
+    public async Task RestoreSnapshotAsync(SystemSnapshot snapshot, string targetPath)
     {
         if (snapshot.RootDirectory == null)
             throw new SnapshotException("Root directory snapshot is null.");
@@ -33,13 +33,13 @@ public class RestorationService : IRestorationService
             Directory.CreateDirectory(targetPath);
 
         // Begin parallel restoration for the root directory.
-        await RestoreDirectory(snapshot.RootDirectory, targetPath);
+        await RestoreDirectoryAsync(snapshot.RootDirectory, targetPath);
     }
 
     /// <summary>
     /// Restores a directory snapshot to the target path, utilizing parallelism for directories and files.
     /// </summary>
-    private async Task RestoreDirectory(DirectorySnapshot directorySnapshot, string targetPath)
+    private async Task RestoreDirectoryAsync(DirectorySnapshot directorySnapshot, string targetPath)
     {
         if (directorySnapshot.Path == null)
             throw new SnapshotException("Directory snapshot path is null.");
@@ -51,7 +51,7 @@ public class RestorationService : IRestorationService
 
         // Parallelize restoration of files and directories.
         var fileRestorationTasks = directorySnapshot.Files.Select(file => Task.Run(() => RestoreFile(file, targetDir))).ToArray();
-        var directoryRestorationTasks = directorySnapshot.Directories.Select(dir => RestoreDirectory(dir, targetDir)).ToArray();
+        var directoryRestorationTasks = directorySnapshot.Directories.Select(dir => RestoreDirectoryAsync(dir, targetDir)).ToArray();
 
         await Task.WhenAll(fileRestorationTasks.Concat(directoryRestorationTasks));
     }

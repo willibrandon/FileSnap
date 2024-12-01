@@ -34,7 +34,7 @@ public class RestorationServiceTests : IDisposable
         await File.WriteAllBytesAsync(snapshotPath, snapshot.RootDirectory!.Files[0].Content!);
 
         // Act
-        await _restorationService.RestoreSnapshot(snapshot, _testDir);
+        await _restorationService.RestoreSnapshotAsync(snapshot, _testDir);
 
         // Assert
         var restoredDir = Path.Combine(_testDir, "test");

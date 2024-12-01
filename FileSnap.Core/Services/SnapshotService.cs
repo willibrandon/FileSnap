@@ -33,7 +33,7 @@ public class SnapshotService : ISnapshotService
     /// <param name="path">The full path to the directory to capture.</param>
     /// <returns>A <see cref="SystemSnapshot"/> containing the captured directory structure.</returns>
     /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
-    public async Task<SystemSnapshot> CaptureSnapshot(string path)
+    public async Task<SystemSnapshot> CaptureSnapshotAsync(string path)
     {
         if (!Directory.Exists(path))
             throw new SnapshotException($"Directory not found: {path}");
@@ -43,7 +43,7 @@ public class SnapshotService : ISnapshotService
             Id = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             BasePath = path,
-            RootDirectory = await CaptureDirectory(path)
+            RootDirectory = await CaptureDirectoryAsync(path)
         };
 
         return snapshot;
@@ -55,7 +55,7 @@ public class SnapshotService : ISnapshotService
     /// <param name="path">The path to the compressed snapshot file.</param>
     /// <returns>The deserialized <see cref="SystemSnapshot"/>.</returns>
     /// <exception cref="SnapshotException">Thrown when the snapshot cannot be deserialized.</exception>
-    public async Task<SystemSnapshot> LoadSnapshot(string path)
+    public async Task<SystemSnapshot> LoadSnapshotAsync(string path)
     {
         var compressedData = await File.ReadAllBytesAsync(path);
         var json = DecompressString(compressedData);
@@ -71,7 +71,7 @@ public class SnapshotService : ISnapshotService
     /// <returns>A task representing the asynchronous save operation.</returns>
     /// <exception cref="ArgumentNullException">Thrown when snapshot is null.</exception>
     /// <exception cref="SnapshotException">Thrown when the snapshot cannot be serialized or compressed.</exception>
-    public async Task SaveSnapshot(SystemSnapshot snapshot, string outputPath)
+    public async Task SaveSnapshotAsync(SystemSnapshot snapshot, string outputPath)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -91,7 +91,7 @@ public class SnapshotService : ISnapshotService
         }
     }
 
-    private async Task<DirectorySnapshot> CaptureDirectory(string path)
+    private async Task<DirectorySnapshot> CaptureDirectoryAsync(string path)
     {
         var dirInfo = new DirectoryInfo(path);
 
@@ -109,14 +109,14 @@ public class SnapshotService : ISnapshotService
 
         foreach (var batch in files.Batch(BatchSize))
         {
-            var fileTasks = batch.Select(CaptureFile);
+            var fileTasks = batch.Select(CaptureFileAsync);
             var fileSnapshots = await Task.WhenAll(fileTasks);
             snapshot.Files.AddRange(fileSnapshots);
         }
 
         // Process subdirectories.
         var directories = dirInfo.GetDirectories();
-        var directoryTasks = directories.Select(dir => CaptureDirectory(dir.FullName));
+        var directoryTasks = directories.Select(dir => CaptureDirectoryAsync(dir.FullName));
         var capturedDirectories = await Task.WhenAll(directoryTasks);
 
         snapshot.Directories.AddRange(capturedDirectories);
@@ -124,7 +124,7 @@ public class SnapshotService : ISnapshotService
         return snapshot;
     }
 
-    private async Task<FileSnapshot> CaptureFile(FileInfo file)
+    private async Task<FileSnapshot> CaptureFileAsync(FileInfo file)
     {
         byte[] content;
         using (var fileStream = file.OpenRead())

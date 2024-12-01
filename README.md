@@ -26,16 +26,16 @@ dotnet add package FileSnap
 using FileSnap.Core.Services;
 
 var snapshotService = new SnapshotService(new HashingService());
-var snapshot = await snapshotService.CaptureSnapshot("path/to/directory");
-await snapshotService.SaveSnapshot(snapshot, "path/to/save/snapshot.fsnap");
+var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
+await snapshotService.SaveSnapshotAsync(snapshot, "path/to/save/snapshot.fsnap");
 ```
 
 ### Loading and Comparing Snapshots
 
 ```csharp
 var snapshotService = new SnapshotService(new HashingService());
-var beforeSnapshot = await snapshotService.LoadSnapshot("path/to/before/snapshot.fsnap");
-var afterSnapshot = await snapshotService.LoadSnapshot("path/to/after/snapshot.fsnap");
+var beforeSnapshot = await snapshotService.LoadSnapshotAsync("path/to/before/snapshot.fsnap");
+var afterSnapshot = await snapshotService.LoadSnapshotAsync("path/to/after/snapshot.fsnap");
 
 var comparisonService = new ComparisonService();
 var differences = comparisonService.Compare(beforeSnapshot, afterSnapshot);
@@ -45,10 +45,10 @@ var differences = comparisonService.Compare(beforeSnapshot, afterSnapshot);
 
 ```csharp
 var snapshotService = new SnapshotService(new HashingService());
-var snapshot = await snapshotService.LoadSnapshot("path/to/snapshot.fsnap");
+var snapshot = await snapshotService.LoadSnapshotAsync("path/to/snapshot.fsnap");
 
 var restorationService = new RestorationService();
-await restorationService.RestoreSnapshot(snapshot, "path/to/restore/directory");
+await restorationService.RestoreSnapshotAsync(snapshot, "path/to/restore/directory");
 ```
 
 ## Contributing

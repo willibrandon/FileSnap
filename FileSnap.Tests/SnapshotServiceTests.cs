@@ -34,7 +34,7 @@ public class SnapshotServiceTests : IDisposable
         Directory.CreateDirectory(dirPath);
 
         // Act
-        var snapshot = await _snapshotService.CaptureSnapshot(dirPath);
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
         // Assert
         Assert.NotNull(snapshot);
@@ -53,9 +53,9 @@ public class SnapshotServiceTests : IDisposable
         try
         {
             // Act
-            var snapshot = await _snapshotService.CaptureSnapshot(basePath);
+            var snapshot = await _snapshotService.CaptureSnapshotAsync(basePath);
             var savePath = Path.Combine(_testBasePath, "test.fsnap");
-            await _snapshotService.SaveSnapshot(snapshot, savePath);
+            await _snapshotService.SaveSnapshotAsync(snapshot, savePath);
 
             // Assert
             Assert.NotNull(snapshot);
@@ -89,7 +89,7 @@ public class SnapshotServiceTests : IDisposable
             }
 
             // Verify we can load the saved snapshot.
-            var loadedSnapshot = await _snapshotService.LoadSnapshot(savePath);
+            var loadedSnapshot = await _snapshotService.LoadSnapshotAsync(savePath);
             Assert.Equal(snapshot.Id, loadedSnapshot.Id);
             Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
             Assert.Equal(3, loadedSnapshot.RootDirectory!.Directories.Count);
@@ -112,7 +112,7 @@ public class SnapshotServiceTests : IDisposable
         File.WriteAllText(Path.Combine(dirPath, "test.txt"), "test content");
 
         // Act
-        var snapshot = await _snapshotService.CaptureSnapshot(dirPath);
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
         // Assert
         Assert.NotNull(snapshot);
@@ -129,7 +129,7 @@ public class SnapshotServiceTests : IDisposable
         CreateTestDirectoryStructure(dirPath, 3, 3);
 
         // Act
-        var snapshot = await _snapshotService.CaptureSnapshot(dirPath);
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
         // Assert
         Assert.NotNull(snapshot);
@@ -145,11 +145,11 @@ public class SnapshotServiceTests : IDisposable
         var dirPath = Path.Combine(_testBasePath, "SaveLoad");
         var outputPath = Path.Combine(_testBasePath, "test.fsnap");
         CreateTestDirectoryStructure(dirPath, 2, 2);
-        var originalSnapshot = await _snapshotService.CaptureSnapshot(dirPath);
+        var originalSnapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
         // Act
-        await _snapshotService.SaveSnapshot(originalSnapshot, outputPath);
-        var loadedSnapshot = await _snapshotService.LoadSnapshot(outputPath);
+        await _snapshotService.SaveSnapshotAsync(originalSnapshot, outputPath);
+        var loadedSnapshot = await _snapshotService.LoadSnapshotAsync(outputPath);
 
         // Assert
         Assert.Equal(originalSnapshot.Id, loadedSnapshot.Id);
@@ -167,7 +167,7 @@ public class SnapshotServiceTests : IDisposable
 
         // Act & Assert
         await Assert.ThrowsAsync<SnapshotException>(() =>
-            _snapshotService.CaptureSnapshot(nonExistentPath));
+            _snapshotService.CaptureSnapshotAsync(nonExistentPath));
     }
 
     private static void CreateTestDirectoryStructure(string basePath, int depth, int breadth)

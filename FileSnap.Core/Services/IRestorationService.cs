@@ -13,5 +13,5 @@ public interface IRestorationService
     /// <param name="snapshot">The snapshot to restore.</param>
     /// <param name="targetPath">The target path to restore the snapshot to.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task RestoreSnapshot(SystemSnapshot snapshot, string targetPath);
+    Task RestoreSnapshotAsync(SystemSnapshot snapshot, string targetPath);
 }
