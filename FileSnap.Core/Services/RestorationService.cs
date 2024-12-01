@@ -18,7 +18,9 @@ public class RestorationService : IRestorationService
     public RestorationService()
     {
         _directoryCache = new DirectoryCache();
-        _bytePool = ArrayPool<byte>.Shared; // Reuse byte arrays for file content buffering
+
+        // Reuse byte arrays for file content buffering.
+        _bytePool = ArrayPool<byte>.Shared;
     }
 
     /// <inheritdoc />
@@ -33,7 +35,7 @@ public class RestorationService : IRestorationService
         if (!Directory.Exists(targetPath))
             Directory.CreateDirectory(targetPath);
 
-        // Begin parallel restoration for the root directory
+        // Begin parallel restoration for the root directory.
         await RestoreDirectory(snapshot.RootDirectory, targetPath);
     }
 
@@ -47,10 +49,10 @@ public class RestorationService : IRestorationService
 
         var targetDir = Path.Combine(targetPath, Path.GetFileName(directorySnapshot.Path));
 
-        // Ensure that the directory is created and cached efficiently
+        // Ensure that the directory is created and cached efficiently.
         await _directoryCache.EnsureDirectoryExistsAsync(targetDir);
 
-        // Parallelize restoration of files and directories
+        // Parallelize restoration of files and directories.
         var fileRestorationTasks = directorySnapshot.Files.Select(file => RestoreFile(file, targetDir)).ToArray();
         var directoryRestorationTasks = directorySnapshot.Directories.Select(dir => RestoreDirectory(dir, targetDir)).ToArray();
 
@@ -70,7 +72,7 @@ public class RestorationService : IRestorationService
 
         var targetFile = Path.Combine(targetPath, Path.GetFileName(fileSnapshot.Path));
 
-        // Use file stream with buffering for optimal I/O performance
+        // Use file stream with buffering for optimal I/O performance.
         using (var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan))
         {
             var buffer = _bytePool.Rent(fileSnapshot.Content.Length);
@@ -81,17 +83,14 @@ public class RestorationService : IRestorationService
             }
             finally
             {
-                // Return the buffer to the pool
+                // Return the buffer to the pool.
                 _bytePool.Return(buffer);
             }
         }
 
-        //// Set file attributes and timestamps
-        //var fileInfo = new FileInfo(targetFile)
-        //{
-        //    Attributes = fileSnapshot.Attributes,
-        //    CreationTimeUtc = fileSnapshot.CreatedAt,
-        //    LastWriteTimeUtc = fileSnapshot.LastModified
-        //};
+        // Set file attributes and timestamps.
+        File.SetAttributes(targetFile, fileSnapshot.Attributes);
+        File.SetCreationTimeUtc(targetFile, fileSnapshot.CreatedAt);
+        File.SetLastWriteTimeUtc(targetFile, fileSnapshot.LastModified);
     }
 }
