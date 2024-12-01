@@ -23,6 +23,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eng", "eng", "{A41C1CA1-E11
 		.github\workflows\publish.yml = .github\workflows\publish.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileSnap.Benchmarks", "FileSnap.Benchmarks", "{3194B028-3240-438C-A3E4-C9C4177B8491}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileSnap.Benchmarks", "FileSnap.Benchmarks\FileSnap.Benchmarks.csproj", "{E8B30B86-B8B5-457C-AA94-65247C7C2FE9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +41,10 @@ Global
 		{AB406A00-841C-4623-B28C-534E8DE2146B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB406A00-841C-4623-B28C-534E8DE2146B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB406A00-841C-4623-B28C-534E8DE2146B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8B30B86-B8B5-457C-AA94-65247C7C2FE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8B30B86-B8B5-457C-AA94-65247C7C2FE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8B30B86-B8B5-457C-AA94-65247C7C2FE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8B30B86-B8B5-457C-AA94-65247C7C2FE9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,5 +52,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F63DE2BA-5172-4788-A829-322432D33BBB} = {508C2EFD-05CE-4441-8BBF-E30BB9A53704}
 		{AB406A00-841C-4623-B28C-534E8DE2146B} = {6F641FD6-F279-4AA2-8757-F13404539C93}
+		{E8B30B86-B8B5-457C-AA94-65247C7C2FE9} = {3194B028-3240-438C-A3E4-C9C4177B8491}
 	EndGlobalSection
 EndGlobal
