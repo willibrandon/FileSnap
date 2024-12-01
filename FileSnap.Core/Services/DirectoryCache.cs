@@ -47,40 +47,4 @@ public class DirectoryCache
         _directoryCache[directoryPath] = task;
         await task;
     }
-
-    /// <summary>
-    /// Clears all cached directories from the cache.
-    /// </summary>
-    public void ClearCache()
-    {
-        _directoryCache.Clear();
-    }
-
-    /// <summary>
-    /// Removes a specific directory from the cache.
-    /// </summary>
-    /// <param name="directoryPath">The full path of the directory to remove from the cache.</param>
-    /// <returns><c>true</c> if the directory was removed from the cache; otherwise, <c>false</c>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="directoryPath"/> is null or empty.</exception>
-    public bool RemoveDirectoryFromCache(string directoryPath)
-    {
-        if (string.IsNullOrEmpty(directoryPath))
-            throw new ArgumentNullException(nameof(directoryPath), "Directory path cannot be null or empty.");
-
-        return _directoryCache.TryRemove(directoryPath, out _);
-    }
-
-    /// <summary>
-    /// Checks if the specified directory is in the cache, indicating it was created previously.
-    /// </summary>
-    /// <param name="directoryPath">The full path of the directory to check.</param>
-    /// <returns><c>true</c> if the directory exists in the cache; otherwise, <c>false</c>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="directoryPath"/> is null or empty.</exception>
-    public bool IsDirectoryCached(string directoryPath)
-    {
-        if (string.IsNullOrEmpty(directoryPath))
-            throw new ArgumentNullException(nameof(directoryPath), "Directory path cannot be null or empty.");
-
-        return _directoryCache.ContainsKey(directoryPath);
-    }
 }
