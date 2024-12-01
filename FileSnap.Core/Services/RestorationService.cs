@@ -1,6 +1,7 @@
 ﻿using FileSnap.Core.Exceptions;
 using FileSnap.Core.Models;
 using System.Buffers;
+using System.IO.MemoryMappedFiles;
 
 namespace FileSnap.Core.Services;
 
@@ -10,7 +11,6 @@ namespace FileSnap.Core.Services;
 public class RestorationService : IRestorationService
 {
     private readonly DirectoryCache _directoryCache;
-    private readonly ArrayPool<byte> _bytePool;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RestorationService"/> class.
@@ -18,9 +18,6 @@ public class RestorationService : IRestorationService
     public RestorationService()
     {
         _directoryCache = new DirectoryCache();
-
-        // Reuse byte arrays for file content buffering.
-        _bytePool = ArrayPool<byte>.Shared;
     }
 
     /// <inheritdoc />
@@ -53,7 +50,7 @@ public class RestorationService : IRestorationService
         await _directoryCache.EnsureDirectoryExistsAsync(targetDir);
 
         // Parallelize restoration of files and directories.
-        var fileRestorationTasks = directorySnapshot.Files.Select(file => RestoreFile(file, targetDir)).ToArray();
+        var fileRestorationTasks = directorySnapshot.Files.Select(file => Task.Run(() => RestoreFile(file, targetDir))).ToArray();
         var directoryRestorationTasks = directorySnapshot.Directories.Select(dir => RestoreDirectory(dir, targetDir)).ToArray();
 
         await Task.WhenAll(fileRestorationTasks.Concat(directoryRestorationTasks));
@@ -62,8 +59,11 @@ public class RestorationService : IRestorationService
     /// <summary>
     /// Restores a file from a snapshot to the specified target path, optimizing disk I/O.
     /// </summary>
-    private async Task RestoreFile(FileSnapshot fileSnapshot, string targetPath)
+    private static void RestoreFile(FileSnapshot fileSnapshot, string targetPath)
     {
+        if (fileSnapshot == null)
+            throw new SnapshotException("File snapshot is null.");
+
         if (fileSnapshot.Path == null)
             throw new SnapshotException("File snapshot path is null.");
 
@@ -72,20 +72,11 @@ public class RestorationService : IRestorationService
 
         var targetFile = Path.Combine(targetPath, Path.GetFileName(fileSnapshot.Path));
 
-        // Use file stream with buffering for optimal I/O performance.
-        using (var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan))
+        // Use memory-mapped file for optimal I/O performance.
+        using (var memoryMappedFile = MemoryMappedFile.CreateFromFile(targetFile, FileMode.Create, null, fileSnapshot.Content.Length))
         {
-            var buffer = _bytePool.Rent(fileSnapshot.Content.Length);
-            try
-            {
-                fileSnapshot.Content.CopyTo(buffer, 0);
-                await fileStream.WriteAsync(buffer.AsMemory(0, fileSnapshot.Content.Length));
-            }
-            finally
-            {
-                // Return the buffer to the pool.
-                _bytePool.Return(buffer);
-            }
+            using var accessor = memoryMappedFile.CreateViewAccessor(0, fileSnapshot.Content.Length, MemoryMappedFileAccess.Write);
+            accessor.WriteArray(0, fileSnapshot.Content, 0, fileSnapshot.Content.Length);
         }
 
         // Set file attributes and timestamps.
