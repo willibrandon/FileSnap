@@ -5,7 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<PackageId>FileSnap</PackageId>
-		<Version>1.0.4</Version>
+		<Version>1.0.5</Version>
 		<Authors>willibrandon</Authors>
 		<Description>FileSnap is a .NET library for capturing, comparing, and restoring file system snapshots.</Description>
 		<RepositoryUrl>https://github.com/willibrandon/FileSnap</RepositoryUrl>
