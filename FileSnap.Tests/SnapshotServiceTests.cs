@@ -60,6 +60,12 @@ public class SnapshotServiceTests : IDisposable
         // Act
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
+        // Debugging information
+        foreach (var file in snapshot.RootDirectory!.Files)
+        {
+            Console.WriteLine($"File: {file.Path}");
+        }
+
         // Assert
         Assert.NotNull(snapshot);
         Assert.Equal(dirPath, snapshot.BasePath);
