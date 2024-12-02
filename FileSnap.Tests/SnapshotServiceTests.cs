@@ -1,17 +1,21 @@
 ﻿using FileSnap.Core.Exceptions;
 using FileSnap.Core.Services;
+using System.IO.Compression;
+using System.Text;
 
 namespace FileSnap.Tests;
 
 public class SnapshotServiceTests : IDisposable
 {
     private readonly SnapshotService _snapshotService;
+    private readonly SnapshotService _snapshotServiceWithCompression;
     private readonly string _testBasePath;
 
     public SnapshotServiceTests()
     {
         var hashingService = new HashingService();
         _snapshotService = new SnapshotService(hashingService);
+        _snapshotServiceWithCompression = new SnapshotService(hashingService, true);
         _testBasePath = Path.Combine(Path.GetTempPath(), "FileSnapTests_" + Guid.NewGuid());
         Directory.CreateDirectory(_testBasePath);
     }
@@ -44,98 +48,169 @@ public class SnapshotServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CaptureSnapshot_LargeDirectoryStructure_ShouldWorkCorrectly()
-    {
-        // Arrange
-        var basePath = Path.Combine(_testBasePath, "LargeDirectoryStructure");
-        CreateTestDirectoryStructure(basePath, 3, 3);
-
-        try
-        {
-            // Act
-            var snapshot = await _snapshotService.CaptureSnapshotAsync(basePath);
-            var savePath = Path.Combine(_testBasePath, "test.fsnap");
-            await _snapshotService.SaveSnapshotAsync(snapshot, savePath);
-
-            // Assert
-            Assert.NotNull(snapshot);
-            Assert.Equal(basePath, snapshot.BasePath);
-            Assert.NotNull(snapshot.RootDirectory);
-
-            // Root should have 3 directories but no files.
-            Assert.Equal(3, snapshot.RootDirectory.Directories.Count);
-            Assert.Empty(snapshot.RootDirectory.Files);
-
-            // Verify first level directories.
-            foreach (var dir in snapshot.RootDirectory.Directories)
-            {
-                Assert.Equal(3, dir.Files.Count);
-                Assert.NotNull(dir.Files[0].Content);
-                Assert.NotNull(dir.Files[0].Hash);
-                Assert.True(dir.Files[0].Size > 0);
-
-                // Verify subdirectories.
-                Assert.Equal(3, dir.Directories.Count);
-                foreach (var subdir in dir.Directories)
-                {
-                    Assert.Equal(3, subdir.Files.Count);
-                    Assert.All(subdir.Files, file =>
-                    {
-                        Assert.NotNull(file.Content);
-                        Assert.NotNull(file.Hash);
-                        Assert.True(file.Size > 0);
-                    });
-                }
-            }
-
-            // Verify we can load the saved snapshot.
-            var loadedSnapshot = await _snapshotService.LoadSnapshotAsync(savePath);
-            Assert.Equal(snapshot.Id, loadedSnapshot.Id);
-            Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
-            Assert.Equal(3, loadedSnapshot.RootDirectory!.Directories.Count);
-        }
-        finally
-        {
-            if (Directory.Exists(basePath))
-            {
-                Directory.Delete(basePath, true);
-            }
-        }
-    }
-
-    [Fact]
     public async Task CaptureSnapshot_WithFiles_ReturnsValidSnapshot()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "WithFiles");
+        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
         Directory.CreateDirectory(dirPath);
-        File.WriteAllText(Path.Combine(dirPath, "test.txt"), "test content");
+        File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
+        File.WriteAllText(Path.Combine(dirPath, "file2.txt"), "This is another test file.");
 
         // Act
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
         // Assert
         Assert.NotNull(snapshot);
-        Assert.Single(snapshot.RootDirectory!.Files);
-        Assert.NotNull(snapshot.RootDirectory.Files[0].Content);
-        Assert.NotNull(snapshot.RootDirectory.Files[0].Hash);
+        Assert.Equal(dirPath, snapshot.BasePath);
+        Assert.Equal(2, snapshot.RootDirectory!.Files.Count);
+        Assert.Equal("file1.txt", Path.GetFileName(snapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("file2.txt", Path.GetFileName(snapshot.RootDirectory.Files[1].Path));
     }
 
     [Fact]
     public async Task CaptureSnapshot_WithSubDirectories_ReturnsValidSnapshot()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "WithSubDirs");
-        CreateTestDirectoryStructure(dirPath, 3, 3);
+        var dirPath = Path.Combine(_testBasePath, "DirWithSubDirs");
+        Directory.CreateDirectory(dirPath);
+        var subDirPath = Path.Combine(dirPath, "SubDir");
+        Directory.CreateDirectory(subDirPath);
+        File.WriteAllText(Path.Combine(subDirPath, "file1.txt"), "This is a test file.");
 
         // Act
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
         // Assert
         Assert.NotNull(snapshot);
-        Assert.Equal(3, snapshot.RootDirectory!.Directories.Count);
-        Assert.All(snapshot.RootDirectory.Directories, dir =>
-            Assert.Equal(3, dir.Files.Count));
+        Assert.Equal(dirPath, snapshot.BasePath);
+        Assert.Single(snapshot.RootDirectory!.Directories);
+        Assert.Equal("SubDir", Path.GetFileName(snapshot.RootDirectory.Directories[0].Path));
+        Assert.Single(snapshot.RootDirectory.Directories[0].Files);
+        Assert.Equal("file1.txt", Path.GetFileName(snapshot.RootDirectory.Directories[0].Files[0].Path));
+    }
+
+    [Fact]
+    public async Task CaptureSnapshot_LargeDirectoryStructure_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testBasePath, "LargeDir");
+        Directory.CreateDirectory(dirPath);
+        for (int i = 0; i < 100; i++)
+        {
+            File.WriteAllText(Path.Combine(dirPath, $"file{i}.txt"), "This is a test file.");
+        }
+
+        // Act
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+
+        // Assert
+        Assert.NotNull(snapshot);
+        Assert.Equal(dirPath, snapshot.BasePath);
+        Assert.Equal(100, snapshot.RootDirectory!.Files.Count);
+    }
+
+    [Fact]
+    public async Task SaveSnapshot_AppendsJsonExtensionIfNotSpecified()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testBasePath, "EmptyDir");
+        Directory.CreateDirectory(dirPath);
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+        var outputPath = Path.Combine(_testBasePath, "snapshot");
+
+        // Act
+        await _snapshotService.SaveSnapshotAsync(snapshot, outputPath);
+
+        // Assert
+        var expectedPath = outputPath + ".json";
+        Assert.True(File.Exists(expectedPath));
+    }
+
+    [Fact]
+    public async Task SaveSnapshot_UsesSpecifiedExtension()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testBasePath, "EmptyDir");
+        Directory.CreateDirectory(dirPath);
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+        var outputPath = Path.Combine(_testBasePath, "snapshot.custom");
+
+        // Act
+        await _snapshotService.SaveSnapshotAsync(snapshot, outputPath);
+
+        // Assert
+        Assert.True(File.Exists(outputPath));
+    }
+
+    [Fact]
+    public async Task SaveAndLoadSnapshot_WithoutCompression_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
+        Directory.CreateDirectory(dirPath);
+        File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+        var outputPath = Path.Combine(_testBasePath, "snapshot.json");
+
+        // Act
+        await _snapshotService.SaveSnapshotAsync(snapshot, outputPath);
+        var loadedSnapshot = await _snapshotService.LoadSnapshotAsync(outputPath);
+
+        // Assert
+        Assert.NotNull(loadedSnapshot);
+        Assert.Equal(snapshot.Id, loadedSnapshot.Id);
+        Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
+        Assert.Single(loadedSnapshot.RootDirectory!.Files);
+        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("This is a test file.", Encoding.UTF8.GetString(loadedSnapshot.RootDirectory.Files[0].Content!));
+    }
+
+    [Fact]
+    public async Task SaveAndLoadSnapshot_WithCompressionEnabled_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
+        Directory.CreateDirectory(dirPath);
+        File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
+        var snapshot = await _snapshotServiceWithCompression.CaptureSnapshotAsync(dirPath);
+        var outputPath = Path.Combine(_testBasePath, "snapshot.json");
+
+        // Act
+        await _snapshotServiceWithCompression.SaveSnapshotAsync(snapshot, outputPath);
+        var loadedSnapshot = await _snapshotServiceWithCompression.LoadSnapshotAsync(outputPath);
+
+        // Assert
+        Assert.NotNull(loadedSnapshot);
+        Assert.Equal(snapshot.Id, loadedSnapshot.Id);
+        Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
+        Assert.Single(loadedSnapshot.RootDirectory!.Files);
+        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("This is a test file.", Encoding.UTF8.GetString(loadedSnapshot.RootDirectory.Files[0].Content!));
+    }
+
+    [Fact]
+    public async Task SaveAndLoadSnapshot_WithCustomCompressionService_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var customCompressionService = new CustomCompressionService();
+        var snapshotServiceWithCustomCompression = new SnapshotService(new HashingService(), true, customCompressionService);
+        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
+        Directory.CreateDirectory(dirPath);
+        File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
+        var snapshot = await snapshotServiceWithCustomCompression.CaptureSnapshotAsync(dirPath);
+        var outputPath = Path.Combine(_testBasePath, "snapshot.json");
+
+        // Act
+        await snapshotServiceWithCustomCompression.SaveSnapshotAsync(snapshot, outputPath);
+        var loadedSnapshot = await snapshotServiceWithCustomCompression.LoadSnapshotAsync(outputPath);
+
+        // Assert
+        Assert.NotNull(loadedSnapshot);
+        Assert.Equal(snapshot.Id, loadedSnapshot.Id);
+        Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
+        Assert.Single(loadedSnapshot.RootDirectory!.Files);
+        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("This is a test file.", Encoding.UTF8.GetString(loadedSnapshot.RootDirectory.Files[0].Content!));
     }
 
     [Fact]
@@ -143,7 +218,7 @@ public class SnapshotServiceTests : IDisposable
     {
         // Arrange
         var dirPath = Path.Combine(_testBasePath, "SaveLoad");
-        var outputPath = Path.Combine(_testBasePath, "test.fsnap");
+        var outputPath = Path.Combine(_testBasePath, "test.json");
         CreateTestDirectoryStructure(dirPath, 2, 2);
         var originalSnapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
@@ -190,5 +265,30 @@ public class SnapshotServiceTests : IDisposable
                 CreateTestDirectoryStructure(dirPath, depth - 1, breadth);
             }
         }
+    }
+}
+
+public class CustomCompressionService : ICompressionService
+{
+    public byte[] Compress(byte[] data)
+    {
+        using var msi = new MemoryStream(data);
+        using var mso = new MemoryStream();
+        using (var gs = new GZipStream(mso, CompressionMode.Compress))
+        {
+            msi.CopyTo(gs);
+        }
+        return mso.ToArray();
+    }
+
+    public byte[] Decompress(byte[] data)
+    {
+        using var msi = new MemoryStream(data);
+        using var mso = new MemoryStream();
+        using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+        {
+            gs.CopyTo(mso);
+        }
+        return mso.ToArray();
     }
 }

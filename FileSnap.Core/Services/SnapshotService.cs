@@ -1,7 +1,6 @@
 ﻿using FileSnap.Core.Exceptions;
 using FileSnap.Core.Models;
 using FileSnap.Core.Utilities;
-using System.IO.Compression;
 using System.Text.Json;
 
 namespace FileSnap.Core.Services;
@@ -12,19 +11,45 @@ namespace FileSnap.Core.Services;
 public class SnapshotService : ISnapshotService
 {
     private const int BatchSize = 100;
-    private const string FileExtension = ".fsnap";
+    private const string FileExtension = ".json";
 
     private readonly IHashingService _hashingService;
+    private readonly ICompressionService _compressionService;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private readonly bool _isCompressionEnabled;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SnapshotService"/> class.
+    /// Initializes a new instance of the <see cref="SnapshotService"/> class with the specified hashing service.
+    /// Compression is disabled by default.
     /// </summary>
     /// <param name="hashingService">The service used to compute file hashes.</param>
     public SnapshotService(IHashingService hashingService)
+        : this(hashingService, false, null)
     {
-        _hashingService = hashingService;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SnapshotService"/> class with the specified hashing service and compression flag.
+    /// </summary>
+    /// <param name="hashingService">The service used to compute file hashes.</param>
+    /// <param name="isCompressionEnabled">Flag to enable or disable content compression.</param>
+    public SnapshotService(IHashingService hashingService, bool isCompressionEnabled)
+        : this(hashingService, isCompressionEnabled, null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SnapshotService"/> class with the specified hashing service, compression flag, and compression service.
+    /// </summary>
+    /// <param name="hashingService">The service used to compute file hashes.</param>
+    /// <param name="isCompressionEnabled">Flag to enable or disable content compression.</param>
+    /// <param name="compressionService">The service used to compress and decompress data.</param>
+    public SnapshotService(IHashingService hashingService, bool isCompressionEnabled, ICompressionService? compressionService)
+    {
+        _hashingService = hashingService ?? throw new ArgumentNullException(nameof(hashingService));
+        _compressionService = compressionService ?? new BrotliCompressionService();
         _jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true };
+        _isCompressionEnabled = isCompressionEnabled;
     }
 
     /// <summary>
@@ -57,38 +82,47 @@ public class SnapshotService : ISnapshotService
     /// <exception cref="SnapshotException">Thrown when the snapshot cannot be deserialized.</exception>
     public async Task<SystemSnapshot> LoadSnapshotAsync(string path)
     {
-        var compressedData = await File.ReadAllBytesAsync(path);
-        var json = DecompressString(compressedData);
-        var snapshot = JsonSerializer.Deserialize<SystemSnapshot>(json, _jsonSerializerOptions);
-        return snapshot ?? throw new SnapshotException("Failed to deserialize the snapshot.");
+        var json = await File.ReadAllTextAsync(path);
+        var snapshot = JsonSerializer.Deserialize<SystemSnapshot>(json, _jsonSerializerOptions)
+            ?? throw new SnapshotException("Failed to deserialize the snapshot.");
+        
+        if (snapshot.RootDirectory == null)
+            throw new SnapshotException("Root directory is null in the deserialized snapshot.");
+
+        if (_isCompressionEnabled)
+        {
+            DecompressContent(snapshot.RootDirectory);
+        }
+
+        return snapshot;
     }
 
     /// <summary>
     /// Saves a system snapshot to the specified file path.
     /// </summary>
     /// <param name="snapshot">The snapshot to save.</param>
-    /// <param name="outputPath">The path where the compressed snapshot will be saved. If no extension is provided, .fsnap will be appended.</param>
+    /// <param name="outputPath">The path where the compressed snapshot will be saved.</param>
     /// <returns>A task representing the asynchronous save operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when snapshot is null.</exception>
-    /// <exception cref="SnapshotException">Thrown when the snapshot cannot be serialized or compressed.</exception>
     public async Task SaveSnapshotAsync(SystemSnapshot snapshot, string outputPath)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(outputPath);
 
-        try
-        {
-            var finalPath = !Path.HasExtension(outputPath)
+        if (snapshot.RootDirectory == null)
+            throw new SnapshotException("Root directory is null in the snapshot.");
+
+        // Ensure the output file has the .json extension if none is specified.
+        var finalPath = !Path.HasExtension(outputPath)
                 ? outputPath + FileExtension
                 : outputPath;
 
-            var json = JsonSerializer.Serialize(snapshot, _jsonSerializerOptions);
-            var compressedData = CompressString(json);
-            await File.WriteAllBytesAsync(finalPath, compressedData);
-        }
-        catch (Exception ex) when (ex is not ArgumentNullException)
+        if (_isCompressionEnabled)
         {
-            throw new SnapshotException("Failed to save snapshot", ex);
+            DecompressContent(snapshot.RootDirectory);
         }
+
+        var json = JsonSerializer.Serialize(snapshot, _jsonSerializerOptions);
+        await File.WriteAllTextAsync(finalPath, json);
     }
 
     private async Task<DirectorySnapshot> CaptureDirectoryAsync(string path)
@@ -145,22 +179,31 @@ public class SnapshotService : ISnapshotService
         };
     }
 
-    private static byte[] CompressString(string str)
+    private void CompressContent(DirectorySnapshot directorySnapshot)
     {
-        using var output = new MemoryStream();
-        using (var brotli = new BrotliStream(output, CompressionLevel.Optimal))
-        using (var writer = new StreamWriter(brotli))
+        Parallel.ForEach(directorySnapshot.Files, file =>
         {
-            writer.Write(str);
-        }
-        return output.ToArray();
+            if (file.Content != null)
+            {
+                file.CompressedContent = _compressionService.Compress(file.Content);
+                file.Content = null;
+            }
+        });
+
+        Parallel.ForEach(directorySnapshot.Directories, CompressContent);
     }
 
-    private static string DecompressString(byte[] compressedData)
+    private void DecompressContent(DirectorySnapshot directorySnapshot)
     {
-        using var input = new MemoryStream(compressedData);
-        using var brotli = new BrotliStream(input, CompressionMode.Decompress);
-        using var reader = new StreamReader(brotli);
-        return reader.ReadToEnd();
+        Parallel.ForEach(directorySnapshot.Files, file =>
+        {
+            if (file.CompressedContent != null)
+            {
+                file.Content = _compressionService.Decompress(file.CompressedContent);
+                file.CompressedContent = null;
+            }
+        });
+
+        Parallel.ForEach(directorySnapshot.Directories, DecompressContent);
     }
 }

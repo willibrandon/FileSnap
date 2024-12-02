@@ -39,5 +39,10 @@ public class FileSnapshot
     /// Gets or sets the content of the file.
     /// </summary>
     public byte[]? Content { get; set; }
+
+    /// <summary>
+    /// Gets or sets the compressed content of the file.
+    /// </summary>
+    public byte[]? CompressedContent { get; set; }
 }
 

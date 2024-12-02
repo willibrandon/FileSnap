@@ -18,6 +18,15 @@ To install FileSnap, add the following package to your .NET project:
 dotnet add package FileSnap
 ```
 
+## Notes
+
+- The snapshot files are saved with a `.json` extension by default. If you don't specify an extension, `.json` will be appended automatically.
+- The `Content` field of files is compressed to minimize storage space when compression is enabled.
+
+## Default Compression Service
+
+By default, FileSnap uses Brotli compression for optimal storage efficiency. If you don't specify a compression service, the default Brotli compression service will be used. Compression is disabled by default and can be enabled by passing `true` for the `isCompressionEnabled` parameter.
+
 ## Usage
 
 ### Capturing a Snapshot
@@ -27,15 +36,25 @@ using FileSnap.Core.Services;
 
 var snapshotService = new SnapshotService(new HashingService());
 var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
-await snapshotService.SaveSnapshotAsync(snapshot, "path/to/save/snapshot.fsnap");
+await snapshotService.SaveSnapshotAsync(snapshot, "path/to/save/snapshot");
+```
+
+### Capturing a Snapshot with Compression Enabled
+
+```csharp
+using FileSnap.Core.Services;
+
+var snapshotService = new SnapshotService(new HashingService(), isCompressionEnabled: true);
+var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
+await snapshotService.SaveSnapshotAsync(snapshot, "path/to/save/snapshot");
 ```
 
 ### Loading and Comparing Snapshots
 
 ```csharp
 var snapshotService = new SnapshotService(new HashingService());
-var beforeSnapshot = await snapshotService.LoadSnapshotAsync("path/to/before/snapshot.fsnap");
-var afterSnapshot = await snapshotService.LoadSnapshotAsync("path/to/after/snapshot.fsnap");
+var beforeSnapshot = await snapshotService.LoadSnapshotAsync("path/to/before/snapshot.json");
+var afterSnapshot = await snapshotService.LoadSnapshotAsync("path/to/after/snapshot.json");
 
 var comparisonService = new ComparisonService();
 var differences = comparisonService.Compare(beforeSnapshot, afterSnapshot);
@@ -45,16 +64,27 @@ var differences = comparisonService.Compare(beforeSnapshot, afterSnapshot);
 
 ```csharp
 var snapshotService = new SnapshotService(new HashingService());
-var snapshot = await snapshotService.LoadSnapshotAsync("path/to/snapshot.fsnap");
-
-var restorationService = new RestorationService();
-await restorationService.RestoreSnapshotAsync(snapshot, "path/to/restore/directory");
+var snapshot = await snapshotService.LoadSnapshotAsync("path/to/snapshot.json");
+await snapshotService.RestoreSnapshotAsync(snapshot, "path/to/restore");
 ```
 
-## Contributing
+### Custom Compression Service
 
-Contributions are welcome! Please open an issue or submit a pull request on GitHub.
+You can inject a custom compression service if you want to use a different compression algorithm:
 
-## License
+```csharp
+public class CustomCompressionService : ICompressionService
+{
+    public byte[] Compress(byte[] data)
+    {
+        // Custom compression logic
+    }
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/willibrandon/FileSnap/blob/main/LICENSE.txt) file for details.
+    public byte[] Decompress(byte[] data)
+    {
+        // Custom decompression logic
+    }
+}
+
+var snapshotService = new SnapshotService(new HashingService(), new CustomCompressionService(), true);
+```

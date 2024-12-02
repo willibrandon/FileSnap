@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
 using FileSnap.Benchmarks;
 
-BenchmarkRunner.Run<FileSnapBenchmarks>();
+var config = new Config();
+BenchmarkRunner.Run<FileSnapBenchmarks>(config);

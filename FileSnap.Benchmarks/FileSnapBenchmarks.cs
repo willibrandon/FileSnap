@@ -8,12 +8,15 @@ namespace FileSnap.Benchmarks;
 public class FileSnapBenchmarks
 {
     private SnapshotService? _snapshotService;
+    private SnapshotService? _snapshotServiceWithCompression;
     private ComparisonService? _comparisonService;
     private RestorationService? _restorationService;
     private HashingService? _hashingService;
 
     private SystemSnapshot? _smallSnapshot;
     private SystemSnapshot? _largeSnapshot;
+    private SystemSnapshot? _smallSnapshotWithCompression;
+    private SystemSnapshot? _largeSnapshotWithCompression;
 
     // Define test directories
     private const string SmallDirPath = @"C:\Test\SmallDir";
@@ -29,18 +32,21 @@ public class FileSnapBenchmarks
         // Initialize services
         _hashingService = new HashingService();
         _snapshotService = new SnapshotService(_hashingService);
+        _snapshotServiceWithCompression = new SnapshotService(_hashingService, true);
         _comparisonService = new ComparisonService();
         _restorationService = new RestorationService();
 
         // Capture snapshots
         _smallSnapshot = await _snapshotService.CaptureSnapshotAsync(SmallDirPath);
         _largeSnapshot = await _snapshotService.CaptureSnapshotAsync(LargeDirPath);
+        _smallSnapshotWithCompression = await _snapshotServiceWithCompression.CaptureSnapshotAsync(SmallDirPath);
+        _largeSnapshotWithCompression = await _snapshotServiceWithCompression.CaptureSnapshotAsync(LargeDirPath);
     }
 
     #region SnapshotService Benchmarks
 
     /// <summary>
-    /// Benchmark for capturing a snapshot of the small directory.
+    /// Benchmark for capturing a snapshot of the small directory without compression.
     /// </summary>
     [Benchmark]
     public async Task CaptureSmallSnapshot()
@@ -49,7 +55,7 @@ public class FileSnapBenchmarks
     }
 
     /// <summary>
-    /// Benchmark for capturing a snapshot of the large directory.
+    /// Benchmark for capturing a snapshot of the large directory without compression.
     /// </summary>
     [Benchmark]
     public async Task CaptureLargeSnapshot()
@@ -58,7 +64,25 @@ public class FileSnapBenchmarks
     }
 
     /// <summary>
-    /// Benchmark for saving the snapshot of the small directory.
+    /// Benchmark for capturing a snapshot of the small directory with compression.
+    /// </summary>
+    [Benchmark]
+    public async Task CaptureSmallSnapshotWithCompression()
+    {
+        await _snapshotServiceWithCompression!.CaptureSnapshotAsync(SmallDirPath);
+    }
+
+    /// <summary>
+    /// Benchmark for capturing a snapshot of the large directory with compression.
+    /// </summary>
+    [Benchmark]
+    public async Task CaptureLargeSnapshotWithCompression()
+    {
+        await _snapshotServiceWithCompression!.CaptureSnapshotAsync(LargeDirPath);
+    }
+
+    /// <summary>
+    /// Benchmark for saving the snapshot of the small directory without compression.
     /// </summary>
     [Benchmark]
     public async Task SaveSmallSnapshot()
@@ -70,7 +94,7 @@ public class FileSnapBenchmarks
     }
 
     /// <summary>
-    /// Benchmark for saving the snapshot of the large directory.
+    /// Benchmark for saving the snapshot of the large directory without compression.
     /// </summary>
     [Benchmark]
     public async Task SaveLargeSnapshot()
@@ -82,7 +106,31 @@ public class FileSnapBenchmarks
     }
 
     /// <summary>
-    /// Benchmark for loading the snapshot of the small directory.
+    /// Benchmark for saving the snapshot of the small directory with compression.
+    /// </summary>
+    [Benchmark]
+    public async Task SaveSmallSnapshotWithCompression()
+    {
+        if (_smallSnapshotWithCompression != null)
+        {
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_smallSnapshotWithCompression, Path.Combine(SmallDirPath, "smallSnapshotWithCompression.fsnap"));
+        }
+    }
+
+    /// <summary>
+    /// Benchmark for saving the snapshot of the large directory with compression.
+    /// </summary>
+    [Benchmark]
+    public async Task SaveLargeSnapshotWithCompression()
+    {
+        if (_largeSnapshotWithCompression != null)
+        {
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_largeSnapshotWithCompression, Path.Combine(LargeDirPath, "largeSnapshotWithCompression.fsnap"));
+        }
+    }
+
+    /// <summary>
+    /// Benchmark for loading the snapshot of the small directory without compression.
     /// </summary>
     [Benchmark]
     public async Task LoadSmallSnapshot()
@@ -95,7 +143,7 @@ public class FileSnapBenchmarks
     }
 
     /// <summary>
-    /// Benchmark for loading the snapshot of the large directory.
+    /// Benchmark for loading the snapshot of the large directory without compression.
     /// </summary>
     [Benchmark]
     public async Task LoadLargeSnapshot()
@@ -104,6 +152,32 @@ public class FileSnapBenchmarks
         {
             await _snapshotService!.SaveSnapshotAsync(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
             await _snapshotService.LoadSnapshotAsync(Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
+        }
+    }
+
+    /// <summary>
+    /// Benchmark for loading the snapshot of the small directory with compression.
+    /// </summary>
+    [Benchmark]
+    public async Task LoadSmallSnapshotWithCompression()
+    {
+        if (_smallSnapshotWithCompression != null)
+        {
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_smallSnapshotWithCompression, Path.Combine(SmallDirPath, "smallSnapshotWithCompression.fsnap"));
+            await _snapshotServiceWithCompression.LoadSnapshotAsync(Path.Combine(SmallDirPath, "smallSnapshotWithCompression.fsnap"));
+        }
+    }
+
+    /// <summary>
+    /// Benchmark for loading the snapshot of the large directory with compression.
+    /// </summary>
+    [Benchmark]
+    public async Task LoadLargeSnapshotWithCompression()
+    {
+        if (_largeSnapshotWithCompression != null)
+        {
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_largeSnapshotWithCompression, Path.Combine(LargeDirPath, "largeSnapshotWithCompression.fsnap"));
+            await _snapshotServiceWithCompression.LoadSnapshotAsync(Path.Combine(LargeDirPath, "largeSnapshotWithCompression.fsnap"));
         }
     }
 
