@@ -84,6 +84,37 @@ public class SnapshotService : ISnapshotService
     }
 
     /// <summary>
+    /// Captures an incremental snapshot of the specified directory and its contents based on a previous snapshot.
+    /// </summary>
+    /// <param name="path">The full path to the directory to capture.</param>
+    /// <param name="previousSnapshot">The previous snapshot to compare against.</param>
+    /// <returns>A <see cref="SystemSnapshot"/> containing the captured incremental directory structure.</returns>
+    /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
+    public async Task<SystemSnapshot> CaptureIncrementalSnapshotAsync(string path, SystemSnapshot previousSnapshot)
+    {
+        if (!Directory.Exists(path))
+            throw new SnapshotException($"Directory not found: {path}");
+
+        var currentSnapshot = await CaptureSnapshotAsync(path);
+        var difference = new ComparisonService().Compare(previousSnapshot, currentSnapshot);
+
+        var incrementalSnapshot = new SystemSnapshot
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            BasePath = path,
+            RootDirectory = new DirectorySnapshot
+            {
+                Path = path,
+                Files = [.. difference.NewFiles, .. difference.ModifiedFiles.Select(m => m.After), .. difference.DeletedFiles],
+                Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories]
+            }
+        };
+
+        return incrementalSnapshot;
+    }
+
+    /// <summary>
     /// Loads a previously saved snapshot from a file.
     /// </summary>
     /// <param name="path">The path to the compressed snapshot file.</param>
@@ -94,7 +125,7 @@ public class SnapshotService : ISnapshotService
         var json = await File.ReadAllTextAsync(path);
         var snapshot = JsonSerializer.Deserialize<SystemSnapshot>(json, _jsonSerializerOptions)
             ?? throw new SnapshotException("Failed to deserialize the snapshot.");
-        
+
         if (snapshot.RootDirectory == null)
             throw new SnapshotException("Root directory is null in the deserialized snapshot.");
 
@@ -127,7 +158,7 @@ public class SnapshotService : ISnapshotService
 
         if (_isCompressionEnabled)
         {
-            DecompressContent(snapshot.RootDirectory);
+            CompressContent(snapshot.RootDirectory);
         }
 
         var json = JsonSerializer.Serialize(snapshot, _jsonSerializerOptions);

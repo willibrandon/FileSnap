@@ -15,6 +15,15 @@ public interface ISnapshotService
     Task<SystemSnapshot> CaptureSnapshotAsync(string path);
 
     /// <summary>
+    /// Captures an incremental snapshot of the file system at the specified path based on the previous snapshot.
+    /// </summary>
+    /// <param name="path">The path to capture the snapshot from.</param>
+    /// <param name="previousSnapshot">The previous snapshot to compare against.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the captured incremental snapshot.</returns>
+    Task<SystemSnapshot> CaptureIncrementalSnapshotAsync(string path, SystemSnapshot previousSnapshot);
+
+
+    /// <summary>
     /// Loads a snapshot from the specified path.
     /// </summary>
     /// <param name="path">The path to load the snapshot from.</param>

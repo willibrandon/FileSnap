@@ -6,6 +6,11 @@
 public class FileSnapshot
 {
     /// <summary>
+    /// Gets or sets a value indicating whether the file has been deleted.
+    /// </summary>
+    public bool IsDeleted { get; set; }
+
+    /// <summary>
     /// Gets or sets the file path.
     /// </summary>
     public string? Path { get; set; }

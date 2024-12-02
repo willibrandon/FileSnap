@@ -10,22 +10,22 @@ public class SnapshotServiceTests : IDisposable
 {
     private readonly SnapshotService _snapshotService;
     private readonly SnapshotService _snapshotServiceWithCompression;
-    private readonly string _testBasePath;
+    private readonly string _testDir;
 
     public SnapshotServiceTests()
     {
         var hashingService = new HashingService();
         _snapshotService = new SnapshotService(hashingService);
         _snapshotServiceWithCompression = new SnapshotService(hashingService, true);
-        _testBasePath = Path.Combine(Path.GetTempPath(), "FileSnapTests_" + Guid.NewGuid());
-        Directory.CreateDirectory(_testBasePath);
+        _testDir = Path.Combine(Path.GetTempPath(), "FileSnapTests_SnapshotServiceTests");
+        Directory.CreateDirectory(_testDir);
     }
 
     public void Dispose()
     {
-        if (Directory.Exists(_testBasePath))
+        if (Directory.Exists(_testDir))
         {
-            Directory.Delete(_testBasePath, true);
+            Directory.Delete(_testDir, true);
         }
 
         GC.SuppressFinalize(this);
@@ -35,7 +35,7 @@ public class SnapshotServiceTests : IDisposable
     public async Task CaptureSnapshot_EmptyDirectory_ReturnsValidSnapshot()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "EmptyDir");
+        var dirPath = Path.Combine(_testDir, "EmptyDir");
         Directory.CreateDirectory(dirPath);
 
         // Act
@@ -52,7 +52,7 @@ public class SnapshotServiceTests : IDisposable
     public async Task CaptureSnapshot_WithDirectories_ReturnsValidSnapshot()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "DirWithDirectories");
+        var dirPath = Path.Combine(_testDir, "DirWithDirectories");
         Directory.CreateDirectory(dirPath);
         Directory.CreateDirectory(Path.Combine(dirPath, "SubDirA"));
         Directory.CreateDirectory(Path.Combine(dirPath, "SubDirB"));
@@ -72,7 +72,7 @@ public class SnapshotServiceTests : IDisposable
     public async Task CaptureSnapshot_WithFiles_ReturnsValidSnapshot()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
+        var dirPath = Path.Combine(_testDir, "DirWithFiles");
         Directory.CreateDirectory(dirPath);
         File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
         File.WriteAllText(Path.Combine(dirPath, "file2.txt"), "This is another test file.");
@@ -92,7 +92,7 @@ public class SnapshotServiceTests : IDisposable
     public async Task CaptureSnapshot_WithSubDirectories_ReturnsValidSnapshot()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "DirWithSubDirs");
+        var dirPath = Path.Combine(_testDir, "DirWithSubDirs");
         Directory.CreateDirectory(dirPath);
         var subDirPath = Path.Combine(dirPath, "SubDir");
         Directory.CreateDirectory(subDirPath);
@@ -114,7 +114,7 @@ public class SnapshotServiceTests : IDisposable
     public async Task CaptureSnapshot_LargeDirectoryStructure_ShouldWorkCorrectly()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "LargeDir");
+        var dirPath = Path.Combine(_testDir, "LargeDir");
         Directory.CreateDirectory(dirPath);
         for (int i = 0; i < 100; i++)
         {
@@ -158,10 +158,10 @@ public class SnapshotServiceTests : IDisposable
     public async Task SaveSnapshot_AppendsJsonExtensionIfNotSpecified()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "EmptyDir");
+        var dirPath = Path.Combine(_testDir, "EmptyDir");
         Directory.CreateDirectory(dirPath);
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
-        var outputPath = Path.Combine(_testBasePath, "snapshot");
+        var outputPath = Path.Combine(_testDir, "snapshot");
 
         // Act
         await _snapshotService.SaveSnapshotAsync(snapshot, outputPath);
@@ -175,10 +175,10 @@ public class SnapshotServiceTests : IDisposable
     public async Task SaveSnapshot_UsesSpecifiedExtension()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "EmptyDir");
+        var dirPath = Path.Combine(_testDir, "EmptyDir");
         Directory.CreateDirectory(dirPath);
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
-        var outputPath = Path.Combine(_testBasePath, "snapshot.custom");
+        var outputPath = Path.Combine(_testDir, "snapshot.custom");
 
         // Act
         await _snapshotService.SaveSnapshotAsync(snapshot, outputPath);
@@ -191,11 +191,11 @@ public class SnapshotServiceTests : IDisposable
     public async Task SaveAndLoadSnapshot_WithoutCompression_ShouldWorkCorrectly()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
+        var dirPath = Path.Combine(_testDir, "DirWithFiles");
         Directory.CreateDirectory(dirPath);
         File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
-        var outputPath = Path.Combine(_testBasePath, "snapshot.json");
+        var outputPath = Path.Combine(_testDir, "snapshot.json");
 
         // Act
         await _snapshotService.SaveSnapshotAsync(snapshot, outputPath);
@@ -214,11 +214,11 @@ public class SnapshotServiceTests : IDisposable
     public async Task SaveAndLoadSnapshot_WithCompressionEnabled_ShouldWorkCorrectly()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
+        var dirPath = Path.Combine(_testDir, "DirWithFiles");
         Directory.CreateDirectory(dirPath);
         File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
         var snapshot = await _snapshotServiceWithCompression.CaptureSnapshotAsync(dirPath);
-        var outputPath = Path.Combine(_testBasePath, "snapshot.json");
+        var outputPath = Path.Combine(_testDir, "snapshot.json");
 
         // Act
         await _snapshotServiceWithCompression.SaveSnapshotAsync(snapshot, outputPath);
@@ -239,11 +239,11 @@ public class SnapshotServiceTests : IDisposable
         // Arrange
         var customCompressionService = new CustomCompressionService();
         var snapshotServiceWithCustomCompression = new SnapshotService(new HashingService(), true, customCompressionService);
-        var dirPath = Path.Combine(_testBasePath, "DirWithFiles");
+        var dirPath = Path.Combine(_testDir, "DirWithFiles");
         Directory.CreateDirectory(dirPath);
         File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
         var snapshot = await snapshotServiceWithCustomCompression.CaptureSnapshotAsync(dirPath);
-        var outputPath = Path.Combine(_testBasePath, "snapshot.json");
+        var outputPath = Path.Combine(_testDir, "snapshot.json");
 
         // Act
         await snapshotServiceWithCustomCompression.SaveSnapshotAsync(snapshot, outputPath);
@@ -262,8 +262,8 @@ public class SnapshotServiceTests : IDisposable
     public async Task SaveAndLoadSnapshot_RoundTrip_PreservesData()
     {
         // Arrange
-        var dirPath = Path.Combine(_testBasePath, "SaveLoad");
-        var outputPath = Path.Combine(_testBasePath, "test.json");
+        var dirPath = Path.Combine(_testDir, "SaveLoad");
+        var outputPath = Path.Combine(_testDir, "test.json");
         CreateTestDirectoryStructure(dirPath, 2, 2);
         var originalSnapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
 
@@ -283,11 +283,74 @@ public class SnapshotServiceTests : IDisposable
     public async Task CaptureSnapshot_DirectoryNotFound_ThrowsException()
     {
         // Arrange
-        var nonExistentPath = Path.Combine(_testBasePath, "NonExistent");
+        var nonExistentPath = Path.Combine(_testDir, "NonExistent");
 
         // Act & Assert
         await Assert.ThrowsAsync<SnapshotException>(() =>
             _snapshotService.CaptureSnapshotAsync(nonExistentPath));
+    }
+
+    [Fact]
+    public async Task CaptureIncrementalSnapshot_ShouldDetectNewFiles()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testDir, "IncrementalDir");
+        Directory.CreateDirectory(dirPath);
+        var initialSnapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+
+        // Add new file
+        File.WriteAllText(Path.Combine(dirPath, "newfile.txt"), "This is a new file.");
+
+        // Act
+        var incrementalSnapshot = await _snapshotService.CaptureIncrementalSnapshotAsync(dirPath, initialSnapshot);
+
+        // Assert
+        Assert.Single(incrementalSnapshot.RootDirectory!.Files);
+        Assert.Equal("newfile.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
+    }
+
+    [Fact]
+    public async Task CaptureIncrementalSnapshot_ShouldDetectDeletedFiles()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testDir, "IncrementalDir");
+        Directory.CreateDirectory(dirPath);
+        var filePath = Path.Combine(dirPath, "file.txt");
+        File.WriteAllText(filePath, "This is a test file.");
+        var initialSnapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+
+        // Delete file
+        File.Delete(filePath);
+
+        // Act
+        var incrementalSnapshot = await _snapshotService.CaptureIncrementalSnapshotAsync(dirPath, initialSnapshot);
+
+        // Assert
+        Assert.Single(incrementalSnapshot.RootDirectory!.Files);
+        Assert.Equal("file.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
+        Assert.True(incrementalSnapshot.RootDirectory.Files[0].IsDeleted);
+    }
+
+    [Fact]
+    public async Task CaptureIncrementalSnapshot_ShouldDetectModifiedFiles()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testDir, "IncrementalDir");
+        Directory.CreateDirectory(dirPath);
+        var filePath = Path.Combine(dirPath, "file.txt");
+        File.WriteAllText(filePath, "This is a test file.");
+        var initialSnapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+
+        // Modify file
+        File.WriteAllText(filePath, "This is a modified file.");
+
+        // Act
+        var incrementalSnapshot = await _snapshotService.CaptureIncrementalSnapshotAsync(dirPath, initialSnapshot);
+
+        // Assert
+        Assert.Single(incrementalSnapshot.RootDirectory!.Files);
+        Assert.Equal("file.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
+        Assert.NotEqual(initialSnapshot.RootDirectory!.Files[0].Hash, incrementalSnapshot.RootDirectory.Files[0].Hash);
     }
 
     private static void CreateTestDirectoryStructure(string basePath, int depth, int breadth)

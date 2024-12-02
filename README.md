@@ -5,6 +5,7 @@
 ## Features
 
 - **Capture Snapshots**: Record the state of files and directories, including metadata and content.
+- **Capture Incremental Snapshots**: Record only the changes (new, modified, or deleted files) since the last snapshot.
 - **Compare Snapshots**: Identify changes between snapshots, including new, modified, and deleted files.
 - **Restore Snapshots**: Restore file system states to a previous snapshot, including file content and metadata.
 - **Optimized Storage**: Uses compression to minimize storage space for snapshots.
@@ -36,55 +37,163 @@ using FileSnap.Core.Services;
 
 var snapshotService = new SnapshotService(new HashingService());
 var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
-await snapshotService.SaveSnapshotAsync(snapshot, "path/to/save/snapshot");
+await snapshotService.SaveSnapshotAsync(snapshot, "snapshot.json");
 ```
 
-### Capturing a Snapshot with Compression Enabled
+### Capturing an Incremental Snapshot
 
 ```csharp
 using FileSnap.Core.Services;
 
-var snapshotService = new SnapshotService(new HashingService(), isCompressionEnabled: true);
-var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
-await snapshotService.SaveSnapshotAsync(snapshot, "path/to/save/snapshot");
+var snapshotService = new SnapshotService(new HashingService());
+var previousSnapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
+// Make some changes to the directory...
+var incrementalSnapshot = await snapshotService.CaptureIncrementalSnapshotAsync("path/to/directory", previousSnapshot);
+await snapshotService.SaveSnapshotAsync(incrementalSnapshot, "incrementalSnapshot.json");
 ```
 
 ### Loading and Comparing Snapshots
 
 ```csharp
-var snapshotService = new SnapshotService(new HashingService());
-var beforeSnapshot = await snapshotService.LoadSnapshotAsync("path/to/before/snapshot.json");
-var afterSnapshot = await snapshotService.LoadSnapshotAsync("path/to/after/snapshot.json");
+using FileSnap.Core.Services;
 
+var snapshotService = new SnapshotService(new HashingService());
 var comparisonService = new ComparisonService();
-var differences = comparisonService.Compare(beforeSnapshot, afterSnapshot);
+
+var snapshot1 = await snapshotService.LoadSnapshotAsync("snapshot1.json");
+var snapshot2 = await snapshotService.LoadSnapshotAsync("snapshot2.json");
+
+var difference = comparisonService.Compare(snapshot1, snapshot2);
+
+Console.WriteLine("New Files:");
+foreach (var file in difference.NewFiles)
+{
+    Console.WriteLine(file.Path);
+}
+
+Console.WriteLine("Modified Files:");
+foreach (var (before, after) in difference.ModifiedFiles)
+{
+    Console.WriteLine($"{before.Path} -> {after.Path}");
+}
+
+Console.WriteLine("Deleted Files:");
+foreach (var file in difference.DeletedFiles)
+{
+    Console.WriteLine(file.Path);
+}
 ```
 
 ### Restoring a Snapshot
 
 ```csharp
-var snapshotService = new SnapshotService(new HashingService());
-var snapshot = await snapshotService.LoadSnapshotAsync("path/to/snapshot.json");
-await snapshotService.RestoreSnapshotAsync(snapshot, "path/to/restore");
+using FileSnap.Core.Services;
+
+var restorationService = new RestorationService();
+await restorationService.RestoreSnapshotAsync(snapshot, "path/to/restore");
+```
+
+### Restoring an Incremental Snapshot
+
+```csharp
+using FileSnap.Core.Services;
+
+var restorationService = new RestorationService();
+await restorationService.RestoreSnapshotAsync(incrementalSnapshot, "path/to/restore");
 ```
 
 ### Custom Compression Service
 
-You can inject a custom compression service if you want to use a different compression algorithm:
+You can implement your own compression service by implementing the `ICompressionService` interface. Here is an example using GZip compression:
 
 ```csharp
-public class CustomCompressionService : ICompressionService
+using System.IO.Compression;
+
+public class GZipCompressionService : ICompressionService
 {
     public byte[] Compress(byte[] data)
     {
-        // Custom compression logic
+        using var msi = new MemoryStream(data);
+        using var mso = new MemoryStream();
+        using (var gs = new GZipStream(mso, CompressionMode.Compress))
+        {
+            msi.CopyTo(gs);
+        }
+        return mso.ToArray();
     }
 
     public byte[] Decompress(byte[] data)
     {
-        // Custom decompression logic
+        using var msi = new MemoryStream(data);
+        using var mso = new MemoryStream();
+        using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+        {
+            gs.CopyTo(mso);
+        }
+        return mso.ToArray();
     }
 }
-
-var snapshotService = new SnapshotService(new HashingService(), new CustomCompressionService(), true);
 ```
+
+### Example
+
+Here's a complete example that demonstrates a simple backup and restore system:
+
+1. Write initial files to disk to simulate a backup.
+2. Capture initial snapshot.
+3. Write a couple more files to disk to simulate changes.
+4. Capture incremental snapshot.
+5. Delete all files from the disk to simulate data loss.
+6. Restore initial snapshot to recover the original state.
+7. Restore incremental snapshot to apply the changes.
+
+```csharp
+using FileSnap.Core.Services;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        var snapshotService = new SnapshotService(new HashingService());
+        var restorationService = new RestorationService();
+        var comparisonService = new ComparisonService();
+
+        var tempPath = Path.GetTempPath();
+        var dirPath = Path.Combine(tempPath, "FileSnapExample");
+        Directory.CreateDirectory(dirPath);
+
+        // 1. Write initial files to disk to simulate a backup
+        File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
+        File.WriteAllText(Path.Combine(dirPath, "file2.txt"), "This is another test file.");
+
+        // 2. Capture initial snapshot
+        var initialSnapshot = await snapshotService.CaptureSnapshotAsync(dirPath);
+        await snapshotService.SaveSnapshotAsync(initialSnapshot, Path.Combine(tempPath, "initialSnapshot.json"));
+
+        // 3. Write a couple more files to disk to simulate changes
+        File.WriteAllText(Path.Combine(dirPath, "file3.txt"), "This is a new file.");
+        File.WriteAllText(Path.Combine(dirPath, "file2.txt"), "This is a modified file.");
+
+        // 4. Capture incremental snapshot
+        var incrementalSnapshot = await snapshotService.CaptureIncrementalSnapshotAsync(dirPath, initialSnapshot);
+        await snapshotService.SaveSnapshotAsync(incrementalSnapshot, Path.Combine(tempPath, "incrementalSnapshot.json"));
+
+        // 5. Delete all files from the disk to simulate data loss
+        Directory.Delete(dirPath, true);
+        Directory.CreateDirectory(dirPath);
+
+        // 6. Restore initial snapshot to recover the original state
+        await restorationService.RestoreSnapshotAsync(initialSnapshot, dirPath);
+
+        // 7. Restore incremental snapshot to apply the changes
+        await restorationService.RestoreSnapshotAsync(incrementalSnapshot, dirPath);
+
+        Console.WriteLine("Restoration complete.");
+    }
+}
+```
+
+This example demonstrates how to use FileSnap to implement a simple backup and restore system, including capturing, comparing, and restoring file system snapshots, with incremental snapshots.
