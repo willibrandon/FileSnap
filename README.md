@@ -40,6 +40,16 @@ var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
 await snapshotService.SaveSnapshotAsync(snapshot, "snapshot.json");
 ```
 
+### Capturing a Snapshot with Compression Enabled
+
+```csharp
+using FileSnap.Core.Services;
+
+var snapshotService = new SnapshotService(new HashingService(), true);
+var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
+await snapshotService.SaveSnapshotAsync(snapshot, "snapshot.json");
+```
+
 ### Capturing an Incremental Snapshot
 
 ```csharp
@@ -135,6 +145,17 @@ public class GZipCompressionService : ICompressionService
 }
 ```
 
+### Using a Custom Compression Service
+
+```csharp
+using FileSnap.Core.Services;
+
+var customCompressionService = new GZipCompressionService();
+var snapshotService = new SnapshotService(new HashingService(), true, customCompressionService);
+var snapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
+await snapshotService.SaveSnapshotAsync(snapshot, "snapshot.json");
+```
+
 ### Example
 
 Here's a complete example that demonstrates a simple backup and restore system:
@@ -197,3 +218,11 @@ class Program
 ```
 
 This example demonstrates how to use FileSnap to implement a simple backup and restore system, including capturing, comparing, and restoring file system snapshots, with incremental snapshots.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request on GitHub.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/willibrandon/FileSnap/blob/main/LICENSE.txt) file for details.
