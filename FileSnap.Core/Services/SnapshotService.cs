@@ -19,6 +19,15 @@ public class SnapshotService : ISnapshotService
     private readonly bool _isCompressionEnabled;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="SnapshotService"/> class with the default hashing service.
+    /// Compression is disabled by default.
+    /// </summary>
+    public SnapshotService()
+        : this(new HashingService(), false, null)
+    {
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="SnapshotService"/> class with the specified hashing service.
     /// Compression is disabled by default.
     /// </summary>

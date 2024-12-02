@@ -1,6 +1,7 @@
 ﻿using FileSnap.Core.Exceptions;
 using FileSnap.Core.Services;
 using System.IO.Compression;
+using System.Reflection;
 using System.Text;
 
 namespace FileSnap.Tests;
@@ -107,6 +108,30 @@ public class SnapshotServiceTests : IDisposable
         Assert.NotNull(snapshot);
         Assert.Equal(dirPath, snapshot.BasePath);
         Assert.Equal(100, snapshot.RootDirectory!.Files.Count);
+    }
+
+    [Fact]
+    public void DefaultConstructor_UsesDefaultHashingServiceAndCompressionDisabled()
+    {
+        // Arrange & Act
+        var snapshotService = new SnapshotService();
+
+        // Assert
+        Assert.NotNull(snapshotService);
+        Assert.IsType<SnapshotService>(snapshotService);
+
+        // Use reflection to check the private fields
+        var hashingServiceField = typeof(SnapshotService).GetField(
+            "_hashingService", BindingFlags.NonPublic | BindingFlags.Instance);
+        var hashingServiceInstance = hashingServiceField?.GetValue(snapshotService);
+
+        var isCompressionEnabledField = typeof(SnapshotService).GetField(
+            "_isCompressionEnabled", BindingFlags.NonPublic | BindingFlags.Instance);
+        var isCompressionEnabled = (bool?)isCompressionEnabledField?.GetValue(snapshotService);
+
+        Assert.NotNull(hashingServiceInstance);
+        Assert.IsType<HashingService>(hashingServiceInstance);
+        Assert.False(isCompressionEnabled);
     }
 
     [Fact]
