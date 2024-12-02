@@ -1,5 +1,6 @@
 ﻿using FileSnap.Core.Models;
 using FileSnap.Core.Services;
+using System.Text;
 
 namespace FileSnap.Tests;
 
@@ -42,27 +43,98 @@ public class RestorationServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(restoredDir, "test.txt")));
     }
 
-    private static SystemSnapshot CreateSnapshot()
-        => new()
+    [Fact]
+    public async Task RestoreSnapshot_ShouldRestoreFiles()
+    {
+        // Arrange
+        var snapshot = CreateSnapshot();
+        var snapshotPath = Path.Combine(_testDir, "snapshot.json");
+        await File.WriteAllBytesAsync(snapshotPath, snapshot.RootDirectory!.Files[0].Content!);
+
+        // Act
+        await _restorationService.RestoreSnapshotAsync(snapshot, _testDir);
+
+        // Assert
+        var restoredFile = Path.Combine(_testDir, "test", "test.txt");
+        Assert.True(File.Exists(restoredFile));
+        var content = await File.ReadAllTextAsync(restoredFile);
+        Assert.Equal("This is a test file.", content);
+    }
+
+    [Fact]
+    public async Task RestoreSnapshot_ShouldHandleExistingFiles()
+    {
+        // Arrange
+        var snapshot = CreateSnapshot();
+        var snapshotPath = Path.Combine(_testDir, "snapshot.json");
+        await File.WriteAllBytesAsync(snapshotPath, snapshot.RootDirectory!.Files[0].Content!);
+
+        var existingFile = Path.Combine(_testDir, "test", "test.txt");
+        Directory.CreateDirectory(Path.Combine(_testDir, "test"));
+        await File.WriteAllTextAsync(existingFile, "This is a test file.");
+
+        // Act
+        await _restorationService.RestoreSnapshotAsync(snapshot, _testDir);
+
+        // Assert
+        var restoredFile = Path.Combine(_testDir, "test", "test.txt");
+        Assert.True(File.Exists(restoredFile));
+        var content = await File.ReadAllTextAsync(restoredFile);
+        Assert.Equal("This is a test file.", content);
+    }
+
+    [Fact]
+    public async Task RestoreSnapshot_ShouldHandleExistingDirectories()
+    {
+        // Arrange
+        var snapshot = CreateSnapshot();
+        var snapshotPath = Path.Combine(_testDir, "snapshot.json");
+        await File.WriteAllBytesAsync(snapshotPath, snapshot.RootDirectory!.Files[0].Content!);
+
+        var existingDir = Path.Combine(_testDir, "test");
+        Directory.CreateDirectory(existingDir);
+
+        // Act
+        await _restorationService.RestoreSnapshotAsync(snapshot, _testDir);
+
+        // Assert
+        Assert.True(Directory.Exists(existingDir));
+        Assert.True(File.Exists(Path.Combine(existingDir, "test.txt")));
+    }
+
+    private SystemSnapshot CreateSnapshot()
+    {
+        var content = Encoding.UTF8.GetBytes("This is a test file.");
+        var filePath = Path.Combine(_testDir, "test", "test.txt");
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        File.WriteAllBytes(filePath, content);
+
+        return new SystemSnapshot
         {
             Id = Guid.NewGuid(),
-            CreatedAt = DateTime.UtcNow,
+            BasePath = "basepath",
             RootDirectory = new DirectorySnapshot
             {
-                Path = "test",
+                Path = "basepath",
                 Files =
                 [
-                    new FileSnapshot
-                    {
-                        Path = "test.txt",
-                        Hash = "hash",
-                        Size = 11,
-                        LastModified = DateTime.UtcNow,
-                        CreatedAt = DateTime.UtcNow,
+                    new() {
+                        Path = "test/test.txt",
+                        Content = content,
+                        Hash = Convert.ToBase64String(content),
+                        CreatedAt = DateTime.Now,
+                        LastModified = DateTime.Now,
                         Attributes = FileAttributes.Normal,
-                        Content = System.Text.Encoding.UTF8.GetBytes("test content")
+                    }
+                ],
+                Directories =
+                [
+                    new DirectorySnapshot
+                    {
+                        Path = "test"
                     }
                 ]
             }
         };
+    }
 }
