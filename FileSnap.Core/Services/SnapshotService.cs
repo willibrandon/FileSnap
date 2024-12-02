@@ -162,6 +162,8 @@ public class SnapshotService : ISnapshotService
         var directoryTasks = directories.Select(dir => CaptureDirectoryAsync(dir.FullName));
         var capturedDirectories = await Task.WhenAll(directoryTasks);
 
+        // Sort files and directories by their paths to ensure consistent order.
+        snapshot.Files = [.. snapshot.Files.OrderBy(f => f.Path)];
         snapshot.Directories.AddRange(capturedDirectories);
 
         return snapshot;
