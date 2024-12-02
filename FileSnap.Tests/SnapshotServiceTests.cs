@@ -49,6 +49,26 @@ public class SnapshotServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CaptureSnapshot_WithDirectories_ReturnsValidSnapshot()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testBasePath, "DirWithDirectories");
+        Directory.CreateDirectory(dirPath);
+        Directory.CreateDirectory(Path.Combine(dirPath, "SubDirA"));
+        Directory.CreateDirectory(Path.Combine(dirPath, "SubDirB"));
+
+        // Act
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+
+        // Assert
+        Assert.NotNull(snapshot);
+        Assert.Equal(dirPath, snapshot.BasePath);
+        Assert.Equal(2, snapshot.RootDirectory!.Directories.Count);
+        Assert.Equal("SubDirA", Path.GetFileName(snapshot.RootDirectory.Directories[0].Path));
+        Assert.Equal("SubDirB", Path.GetFileName(snapshot.RootDirectory.Directories[1].Path));
+    }
+
+    [Fact]
     public async Task CaptureSnapshot_WithFiles_ReturnsValidSnapshot()
     {
         // Arrange

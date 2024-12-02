@@ -161,10 +161,11 @@ public class SnapshotService : ISnapshotService
         var directories = dirInfo.GetDirectories();
         var directoryTasks = directories.Select(dir => CaptureDirectoryAsync(dir.FullName));
         var capturedDirectories = await Task.WhenAll(directoryTasks);
+        snapshot.Directories.AddRange(capturedDirectories);
 
         // Sort files and directories by their paths to ensure consistent order.
         snapshot.Files = [.. snapshot.Files.OrderBy(f => f.Path)];
-        snapshot.Directories.AddRange(capturedDirectories);
+        snapshot.Directories = [.. snapshot.Directories.OrderBy(d => d.Path)];
 
         return snapshot;
     }
