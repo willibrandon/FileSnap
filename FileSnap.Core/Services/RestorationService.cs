@@ -30,7 +30,7 @@ public class RestorationService : IRestorationService
             throw new SnapshotException("Root directory snapshot is null.");
 
         if (!Directory.Exists(targetPath))
-            Directory.CreateDirectory(targetPath);
+            throw new SnapshotException("Target path does not exist.");
 
         // Begin parallel restoration for the root directory.
         await RestoreDirectoryAsync(snapshot.RootDirectory, targetPath);
@@ -45,6 +45,16 @@ public class RestorationService : IRestorationService
             throw new SnapshotException("Directory snapshot path is null.");
 
         var targetDir = Path.Combine(targetPath, Path.GetFileName(directorySnapshot.Path));
+
+        if (directorySnapshot.IsDeleted)
+        {
+            if (Directory.Exists(targetDir))
+            {
+                Directory.Delete(targetDir, true);
+            }
+
+            return;
+        }
 
         // Ensure that the directory is created and cached efficiently.
         await _directoryCache.EnsureDirectoryExistsAsync(targetDir);
@@ -64,13 +74,23 @@ public class RestorationService : IRestorationService
         if (fileSnapshot == null)
             throw new SnapshotException("File snapshot is null.");
 
-        if (fileSnapshot.Path == null)
-            throw new SnapshotException("File snapshot path is null.");
-
         if (fileSnapshot.Content == null)
             throw new SnapshotException("File snapshot content is null.");
 
+        if (fileSnapshot.Path == null)
+            throw new SnapshotException("File snapshot path is null.");
+
         var targetFile = Path.Combine(targetPath, Path.GetFileName(fileSnapshot.Path));
+
+        if (fileSnapshot.IsDeleted)
+        {
+            if (File.Exists(targetFile))
+            {
+                File.Delete(targetFile);
+            }
+
+            return;
+        }
 
         // Use memory-mapped file for optimal I/O performance.
         using (var memoryMappedFile = MemoryMappedFile.CreateFromFile(targetFile, FileMode.Create, null, fileSnapshot.Content.Length))
@@ -80,8 +100,22 @@ public class RestorationService : IRestorationService
         }
 
         // Set file attributes and timestamps.
-        File.SetAttributes(targetFile, fileSnapshot.Attributes);
-        File.SetCreationTimeUtc(targetFile, fileSnapshot.CreatedAt);
-        File.SetLastWriteTimeUtc(targetFile, fileSnapshot.LastModified);
+        try
+        {
+            File.SetAttributes(targetFile, fileSnapshot.Attributes);
+        }
+        catch { }
+
+        try
+        {
+            File.SetCreationTimeUtc(targetFile, fileSnapshot.CreatedAt);
+        }
+        catch { }
+
+        try
+        {
+            File.SetLastWriteTimeUtc(targetFile, fileSnapshot.LastModified);
+        }
+        catch { }
     }
 }

@@ -6,6 +6,11 @@
 public class DirectorySnapshot
 {
     /// <summary>
+    /// Gets or sets a value indicating whether the directory has been deleted.
+    /// </summary>
+    public bool IsDeleted { get; set; }
+
+    /// <summary>
     /// Gets or sets the directory path.
     /// </summary>
     public string? Path { get; set; }

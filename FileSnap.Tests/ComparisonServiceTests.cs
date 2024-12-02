@@ -129,6 +129,30 @@ public class ComparisonServiceTests : IDisposable
         Assert.Single(difference.ModifiedDirectories);
     }
 
+    [Fact]
+    public void Compare_ShouldDetectIncrementalChanges()
+    {
+        // Arrange
+        var before = CreateSnapshot();
+        before.RootDirectory!.Files.Add(new FileSnapshot { Path = "file1.txt", Hash = "hash1" });
+        before.RootDirectory!.Files.Add(new FileSnapshot { Path = "file2.txt", Hash = "hash2" });
+        before.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "dir1" });
+
+        var after = CreateSnapshot();
+        after.RootDirectory!.Files.Add(new FileSnapshot { Path = "file2.txt", Hash = "newhash2" }); // Modified
+        after.RootDirectory!.Files.Add(new FileSnapshot { Path = "file3.txt", Hash = "hash3" }); // New
+        after.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "dir2" }); // New
+
+        // Act
+        var difference = _comparisonService.Compare(before, after);
+
+        // Assert
+        Assert.Single(difference.NewFiles);
+        Assert.Single(difference.ModifiedFiles);
+        Assert.Single(difference.NewDirectories);
+        Assert.Single(difference.DeletedFiles);
+    }
+
     private static SystemSnapshot CreateSnapshot()
         => new()
         {
@@ -137,8 +161,8 @@ public class ComparisonServiceTests : IDisposable
             RootDirectory = new DirectorySnapshot
             {
                 Path = "basepath",
-                Files = new List<FileSnapshot>(),
-                Directories = new List<DirectorySnapshot>()
+                Files = [],
+                Directories = []
             }
         };
 }

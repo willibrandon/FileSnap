@@ -58,6 +58,7 @@ public class ComparisonService : IComparisonService
         {
             if (!afterFiles.ContainsKey(beforeFile.Path!))
             {
+                beforeFile.IsDeleted = true;
                 difference.DeletedFiles.Add(beforeFile);
             }
         }
@@ -101,6 +102,7 @@ public class ComparisonService : IComparisonService
 
             if (!afterDirs.ContainsKey(beforeDir.Path))
             {
+                beforeDir.IsDeleted = true;
                 difference.DeletedDirectories.Add(beforeDir);
             }
         }
