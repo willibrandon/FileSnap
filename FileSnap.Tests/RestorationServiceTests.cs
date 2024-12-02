@@ -21,6 +21,11 @@ public class RestorationServiceTests : IDisposable
     {
         if (Directory.Exists(_testDir))
         {
+            foreach (var file in Directory.GetFiles(_testDir))
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+            }
+
             Directory.Delete(_testDir, true);
         }
 
@@ -145,7 +150,7 @@ public class RestorationServiceTests : IDisposable
         Directory.CreateDirectory(dirPath);
         var filePath = Path.Combine(dirPath, "file6.txt");
         File.WriteAllText(filePath, "This is a test file.");
-        File.SetAttributes(filePath, FileAttributes.Temporary);
+        File.SetAttributes(filePath, FileAttributes.Normal);
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
         var snapshotPath = Path.Combine(_testDir, "snapshot.json");
         await _snapshotService.SaveSnapshotAsync(snapshot, snapshotPath);
@@ -157,7 +162,7 @@ public class RestorationServiceTests : IDisposable
         var restoredFile = Path.Combine(_testDir, "FileAttributesTest", "file6.txt");
         Assert.True(File.Exists(restoredFile));
         var attributes = File.GetAttributes(restoredFile);
-        Assert.Equal(FileAttributes.Temporary, attributes);
+        Assert.Equal(FileAttributes.Normal, attributes);
     }
 
     [Fact]
