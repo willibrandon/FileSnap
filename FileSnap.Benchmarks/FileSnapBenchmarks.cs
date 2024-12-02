@@ -21,6 +21,8 @@ public class FileSnapBenchmarks
     // Define test directories
     private const string SmallDirPath = @"C:\Test\SmallDir";
     private const string LargeDirPath = @"C:\Test\LargeDir";
+    private const string RestoredSmallDirPath = @"C:\Restored\SmallDir";
+    private const string RestoredLargeDirPath = @"C:\Restored\LargeDir";
 
     [GlobalSetup]
     public async Task Setup()
@@ -28,6 +30,8 @@ public class FileSnapBenchmarks
         // Ensure test directories exist
         CreateTestDirectory(SmallDirPath, 10);  // 10 small files for "small" directory
         CreateTestDirectory(LargeDirPath, 1000); // 1000 files for "large" directory
+        CreateTestDirectory(RestoredSmallDirPath, 0);
+        CreateTestDirectory(RestoredLargeDirPath, 0);
 
         // Initialize services
         _hashingService = new HashingService();
@@ -89,7 +93,7 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshotAsync(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.json"));
         }
     }
 
@@ -101,7 +105,7 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshotAsync(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.json"));
         }
     }
 
@@ -113,7 +117,7 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshotWithCompression != null)
         {
-            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_smallSnapshotWithCompression, Path.Combine(SmallDirPath, "smallSnapshotWithCompression.fsnap"));
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_smallSnapshotWithCompression, Path.Combine(SmallDirPath, "smallSnapshotWithCompression.json"));
         }
     }
 
@@ -125,7 +129,7 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshotWithCompression != null)
         {
-            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_largeSnapshotWithCompression, Path.Combine(LargeDirPath, "largeSnapshotWithCompression.fsnap"));
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_largeSnapshotWithCompression, Path.Combine(LargeDirPath, "largeSnapshotWithCompression.json"));
         }
     }
 
@@ -137,8 +141,8 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshotAsync(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
-            await _snapshotService.LoadSnapshotAsync(Path.Combine(SmallDirPath, "smallSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_smallSnapshot, Path.Combine(SmallDirPath, "smallSnapshot.json"));
+            await _snapshotService.LoadSnapshotAsync(Path.Combine(SmallDirPath, "smallSnapshot.json"));
         }
     }
 
@@ -150,8 +154,8 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshot != null)
         {
-            await _snapshotService!.SaveSnapshotAsync(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
-            await _snapshotService.LoadSnapshotAsync(Path.Combine(LargeDirPath, "largeSnapshot.fsnap"));
+            await _snapshotService!.SaveSnapshotAsync(_largeSnapshot, Path.Combine(LargeDirPath, "largeSnapshot.json"));
+            await _snapshotService.LoadSnapshotAsync(Path.Combine(LargeDirPath, "largeSnapshot.json"));
         }
     }
 
@@ -163,8 +167,8 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshotWithCompression != null)
         {
-            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_smallSnapshotWithCompression, Path.Combine(SmallDirPath, "smallSnapshotWithCompression.fsnap"));
-            await _snapshotServiceWithCompression.LoadSnapshotAsync(Path.Combine(SmallDirPath, "smallSnapshotWithCompression.fsnap"));
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_smallSnapshotWithCompression, Path.Combine(SmallDirPath, "smallSnapshotWithCompression.json"));
+            await _snapshotServiceWithCompression.LoadSnapshotAsync(Path.Combine(SmallDirPath, "smallSnapshotWithCompression.json"));
         }
     }
 
@@ -176,8 +180,8 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshotWithCompression != null)
         {
-            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_largeSnapshotWithCompression, Path.Combine(LargeDirPath, "largeSnapshotWithCompression.fsnap"));
-            await _snapshotServiceWithCompression.LoadSnapshotAsync(Path.Combine(LargeDirPath, "largeSnapshotWithCompression.fsnap"));
+            await _snapshotServiceWithCompression!.SaveSnapshotAsync(_largeSnapshotWithCompression, Path.Combine(LargeDirPath, "largeSnapshotWithCompression.json"));
+            await _snapshotServiceWithCompression.LoadSnapshotAsync(Path.Combine(LargeDirPath, "largeSnapshotWithCompression.json"));
         }
     }
 
@@ -233,7 +237,7 @@ public class FileSnapBenchmarks
     {
         if (_smallSnapshot != null)
         {
-            await _restorationService!.RestoreSnapshotAsync(_smallSnapshot, @"C:\Restored\SmallDir");
+            await _restorationService!.RestoreSnapshotAsync(_smallSnapshot, RestoredSmallDirPath);
         }
     }
 
@@ -245,7 +249,7 @@ public class FileSnapBenchmarks
     {
         if (_largeSnapshot != null)
         {
-            await _restorationService!.RestoreSnapshotAsync(_largeSnapshot, @"C:\Restored\LargeDir");
+            await _restorationService!.RestoreSnapshotAsync(_largeSnapshot, RestoredLargeDirPath);
         }
     }
 
@@ -280,8 +284,8 @@ public class FileSnapBenchmarks
     {
         DeleteDirectory(SmallDirPath);
         DeleteDirectory(LargeDirPath);
-        DeleteDirectory(@"C:\Restored\SmallDir");
-        DeleteDirectory(@"C:\Restored\LargeDir");
+        DeleteDirectory(RestoredSmallDirPath);
+        DeleteDirectory(RestoredLargeDirPath);
     }
 
     /// <summary>
