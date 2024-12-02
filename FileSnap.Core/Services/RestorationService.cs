@@ -44,7 +44,7 @@ public class RestorationService : IRestorationService
         if (directorySnapshot.Path == null)
             throw new SnapshotException("Directory snapshot path is null.");
 
-        var targetDir = Path.Combine(targetPath, Path.GetFileName(directorySnapshot.Path));
+        var targetDir = Path.Combine(targetPath, directorySnapshot.Path);
 
         if (directorySnapshot.IsDeleted)
         {
