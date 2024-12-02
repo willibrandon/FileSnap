@@ -39,4 +39,19 @@ public class SnapshotDifference
     /// Gets or sets the list of modified files between the snapshots.
     /// </summary>
     public List<(FileSnapshot Before, FileSnapshot After)> ModifiedFiles { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the list of new directories in the after snapshot
+    /// </summary>
+    public List<DirectorySnapshot> NewDirectories { get; } = [];
+
+    /// <summary>
+    /// Gets the list of deleted directories in the after snapshot.
+    /// </summary>
+    public List<DirectorySnapshot> DeletedDirectories { get; } = [];
+
+    /// <summary>
+    /// Gets the list of modified directories between the snapshots.
+    /// </summary>
+    public List<(DirectorySnapshot Before, DirectorySnapshot After)> ModifiedDirectories { get; } = [];
 }

@@ -34,47 +34,74 @@ public class ComparisonService : IComparisonService
 
     private static void CompareDirectories(DirectorySnapshot before, DirectorySnapshot after, SnapshotDifference difference)
     {
+        // Compare files.
         var beforeFiles = before.Files
             .Where(f => f.Path != null)
             .ToDictionary(f => f.Path!);
-
         var afterFiles = after.Files
             .Where(f => f.Path != null)
             .ToDictionary(f => f.Path!);
 
-        foreach (var file in beforeFiles.Values)
+        foreach (var afterFile in afterFiles.Values)
         {
-            // Ensure file.Path is not null.
-            if (file.Path == null) continue;
-
-            if (!afterFiles.TryGetValue(file.Path, out FileSnapshot? value))
+            if (!beforeFiles.TryGetValue(afterFile.Path!, out var beforeFile))
             {
-                difference.DeletedFiles.Add(file);
+                difference.NewFiles.Add(afterFile);
             }
-            else if (value.Hash != file.Hash)
+            else if (beforeFile.Hash != afterFile.Hash)
             {
-                difference.ModifiedFiles.Add((file, value));
+                difference.ModifiedFiles.Add((beforeFile, afterFile));
             }
         }
 
-        foreach (var file in afterFiles.Values)
+        foreach (var beforeFile in beforeFiles.Values)
         {
-            // Ensure file.Path is not null.
-            if (file.Path == null) continue;
-
-            if (!beforeFiles.ContainsKey(file.Path))
+            if (!afterFiles.ContainsKey(beforeFile.Path!))
             {
-                difference.NewFiles.Add(file);
+                difference.DeletedFiles.Add(beforeFile);
             }
         }
 
-        foreach (var beforeDir in before.Directories)
-        {
-            var afterDir = after.Directories.FirstOrDefault(d => d.Path == beforeDir.Path);
+        // Compare directories.
+        var beforeDirs = before.Directories
+            .Where(d => d.Path != null)
+            .ToDictionary(d => d.Path!);
+        var afterDirs = after.Directories
+            .Where(d => d.Path != null)
+            .ToDictionary(d => d.Path!);
 
-            if (afterDir != null)
+        foreach (var afterDir in afterDirs.Values)
+        {
+            if (afterDir.Path == null)
+            {
+                continue;
+            }
+
+            if (!beforeDirs.TryGetValue(afterDir.Path, out var beforeDir))
+            {
+                difference.NewDirectories.Add(afterDir);
+            }
+            else
             {
                 CompareDirectories(beforeDir, afterDir, difference);
+
+                if (beforeDir.CreatedAt != afterDir.CreatedAt || beforeDir.Attributes != afterDir.Attributes)
+                {
+                    difference.ModifiedDirectories.Add((beforeDir, afterDir));
+                }
+            }
+        }
+
+        foreach (var beforeDir in beforeDirs.Values)
+        {
+            if (beforeDir.Path == null)
+            {
+                continue;
+            }
+
+            if (!afterDirs.ContainsKey(beforeDir.Path))
+            {
+                difference.DeletedDirectories.Add(beforeDir);
             }
         }
     }
