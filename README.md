@@ -170,9 +170,6 @@ Here's a complete example that demonstrates a simple backup and restore system:
 
 ```csharp
 using FileSnap.Core.Services;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 class Program
 {
