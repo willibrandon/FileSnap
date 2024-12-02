@@ -71,7 +71,7 @@ public class RestorationServiceTests : IDisposable
 
         var existingFile = Path.Combine(_testDir, "test", "test.txt");
         Directory.CreateDirectory(Path.Combine(_testDir, "test"));
-        await File.WriteAllTextAsync(existingFile, "This is a test file.");
+        await File.WriteAllTextAsync(existingFile, "Modified content.");
 
         // Act
         await _restorationService.RestoreSnapshotAsync(snapshot, _testDir);
@@ -80,7 +80,7 @@ public class RestorationServiceTests : IDisposable
         var restoredFile = Path.Combine(_testDir, "test", "test.txt");
         Assert.True(File.Exists(restoredFile));
         var content = await File.ReadAllTextAsync(restoredFile);
-        Assert.Equal("This is a test file.", content);
+        Assert.Equal("Modified content.", content);
     }
 
     [Fact]
