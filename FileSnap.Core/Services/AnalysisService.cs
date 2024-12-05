@@ -150,7 +150,7 @@ public class AnalysisService : IAnalysisService
         return modificationFrequency;
     }
 
-    private void TraverseDirectory(DirectorySnapshot directory, ref int fileCount, ref int directoryCount)
+    private static void TraverseDirectory(DirectorySnapshot directory, ref int fileCount, ref int directoryCount)
     {
         directoryCount++;
 
@@ -165,7 +165,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private void TraverseDirectory(DirectorySnapshot directory, ref long totalSize)
+    private static void TraverseDirectory(DirectorySnapshot directory, ref long totalSize)
     {
         foreach (var file in directory.Files)
         {
@@ -178,7 +178,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private void TraverseDirectory(DirectorySnapshot directory, ref long totalSize, ref int fileCount)
+    private static void TraverseDirectory(DirectorySnapshot directory, ref long totalSize, ref int fileCount)
     {
         foreach (var file in directory.Files)
         {
@@ -192,7 +192,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private void TraverseDirectory(DirectorySnapshot directory, ref FileSnapshot? largestFile, ref FileSnapshot? smallestFile)
+    private static void TraverseDirectory(DirectorySnapshot directory, ref FileSnapshot? largestFile, ref FileSnapshot? smallestFile)
     {
         foreach (var file in directory.Files)
         {
@@ -213,18 +213,19 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, int> fileTypeCount)
+    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, int> fileTypeCount)
     {
         foreach (var file in directory.Files)
         {
             var extension = Path.GetExtension(file.Path)?.ToLower() ?? string.Empty;
 
-            if (!fileTypeCount.ContainsKey(extension))
+            if (!fileTypeCount.TryGetValue(extension, out int value))
             {
-                fileTypeCount[extension] = 0;
+                value = 0;
+                fileTypeCount[extension] = value;
             }
 
-            fileTypeCount[extension]++;
+            fileTypeCount[extension] = ++value;
         }
 
         foreach (var subDirectory in directory.Directories)
@@ -233,7 +234,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, long> fileTypeSize)
+    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, long> fileTypeSize)
     {
         foreach (var file in directory.Files)
         {

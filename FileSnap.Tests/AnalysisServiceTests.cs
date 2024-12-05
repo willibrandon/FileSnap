@@ -170,22 +170,22 @@ public class AnalysisServiceTests
         {
             RootDirectory = new DirectorySnapshot
             {
-                Files = new List<FileSnapshot>
-                {
+                Files =
+                [
                     new FileSnapshot { Path = "file1.txt", Size = 100 },
                     new FileSnapshot { Path = "file2.txt", Size = 200 },
                     new FileSnapshot { Path = "file3.jpg", Size = 500 }
-                },
-                Directories = new List<DirectorySnapshot>
-                {
+                ],
+                Directories =
+                [
                     new DirectorySnapshot
                     {
-                        Files = new List<FileSnapshot>
-                        {
+                        Files =
+                        [
                             new FileSnapshot { Path = "subdir/file4.txt", Size = 400 }
-                        }
+                        ]
                     }
-                }
+                ]
             }
         };
     }
@@ -194,18 +194,12 @@ public class AnalysisServiceTests
     {
         return new SnapshotDifference
         {
-            NewFiles = new List<FileSnapshot> { new FileSnapshot { Path = "newfile.txt" } },
-            DeletedFiles = new List<FileSnapshot> { new FileSnapshot { Path = "deletedfile.txt" } },
-            ModifiedFiles = new List<(FileSnapshot, FileSnapshot)>
-            {
-                (new FileSnapshot { Path = "modifiedfile.txt" }, new FileSnapshot { Path = "modifiedfile.txt" })
-            },
-            NewDirectories = new List<DirectorySnapshot> { new DirectorySnapshot { Path = "newdir" } },
-            DeletedDirectories = new List<DirectorySnapshot> { new DirectorySnapshot { Path = "deleteddir" } },
-            ModifiedDirectories = new List<(DirectorySnapshot, DirectorySnapshot)>
-            {
-                (new DirectorySnapshot { Path = "modifieddir" }, new DirectorySnapshot { Path = "modifieddir" })
-            }
+            NewFiles = [new FileSnapshot { Path = "newfile.txt" }],
+            DeletedFiles = [new FileSnapshot { Path = "deletedfile.txt" }],
+            ModifiedFiles = [(new FileSnapshot { Path = "modifiedfile.txt" }, new FileSnapshot { Path = "modifiedfile.txt" })],
+            NewDirectories = [new DirectorySnapshot { Path = "newdir" }],
+            DeletedDirectories = [new DirectorySnapshot { Path = "deleteddir" }],
+            ModifiedDirectories = [ (new DirectorySnapshot { Path = "modifieddir" }, new DirectorySnapshot { Path = "modifieddir" })]
         };
     }
 }
