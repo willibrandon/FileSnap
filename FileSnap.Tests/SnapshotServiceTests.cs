@@ -354,6 +354,25 @@ public class SnapshotServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task AnalyzeSnapshotAsync_ShouldReturnCorrectInsights()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testDir, "AnalyzeDir");
+        Directory.CreateDirectory(dirPath);
+        File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
+        Directory.CreateDirectory(Path.Combine(dirPath, "SubDir"));
+        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+
+        // Act
+        var insights = await _snapshotService.AnalyzeSnapshotAsync(snapshot);
+
+        // Assert
+        Assert.NotNull(insights);
+        Assert.Equal("1", insights["FileCount"]);
+        Assert.Equal("1", insights["DirectoryCount"]);
+    }
+        
+    [Fact]
     public async Task CaptureSnapshotWithMetadataAsync_ShouldIncludeMetadata()
     {
         // Arrange
