@@ -216,6 +216,12 @@ class Program
 
 This example demonstrates how to use FileSnap to implement a simple backup and restore system, including capturing, comparing, and restoring file system snapshots, with incremental snapshots.
 
+## Future Plans
+
+- **Cloud Storage Support**: Adding support for cloud storage to store and retrieve snapshots from cloud providers.
+- **Different Compression Algorithms**: Adding support for different compression algorithms to provide more options for optimizing storage.
+- **Additional Metadata**: Capturing and storing additional metadata for more detailed snapshots.
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on GitHub.
