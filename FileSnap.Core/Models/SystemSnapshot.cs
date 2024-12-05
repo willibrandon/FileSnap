@@ -24,5 +24,13 @@ public class SystemSnapshot
     /// Gets or sets the base path of the snapshot.
     /// </summary>
     public string? BasePath { get; set; }
-}
 
+    /// <summary>
+    /// Gets or sets the insights from the snapshot analysis.
+    /// </summary>
+    public Dictionary<string, string>? Insights { get; set; }
+  
+    /// Gets or sets the additional metadata for the snapshot.
+    /// </summary>
+    public Dictionary<string, string>? Metadata { get; set; }
+}
