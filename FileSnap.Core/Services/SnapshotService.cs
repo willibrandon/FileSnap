@@ -115,6 +115,63 @@ public class SnapshotService : ISnapshotService
     }
 
     /// <summary>
+    /// Captures a snapshot of the specified directory and its contents with additional metadata.
+    /// </summary>
+    /// <param name="path">The full path to the directory to capture.</param>
+    /// <param name="metadata">Additional metadata to include in the snapshot.</param>
+    /// <returns>A <see cref="SystemSnapshot"/> containing the captured directory structure and metadata.</returns>
+    /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
+    public async Task<SystemSnapshot> CaptureSnapshotWithMetadataAsync(string path, Dictionary<string, string> metadata)
+    {
+        if (!Directory.Exists(path))
+            throw new SnapshotException($"Directory not found: {path}");
+
+        var snapshot = new SystemSnapshot
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            BasePath = path,
+            RootDirectory = await CaptureDirectoryAsync(path),
+            Metadata = metadata
+        };
+
+        return snapshot;
+    }
+
+    /// <summary>
+    /// Captures an incremental snapshot of the specified directory and its contents based on a previous snapshot with additional metadata.
+    /// </summary>
+    /// <param name="path">The full path to the directory to capture.</param>
+    /// <param name="previousSnapshot">The previous snapshot to compare against.</param>
+    /// <param name="metadata">Additional metadata to include in the snapshot.</param>
+    /// <returns>A <see cref="SystemSnapshot"/> containing the captured incremental directory structure and metadata.</returns>
+    /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
+    public async Task<SystemSnapshot> CaptureIncrementalSnapshotWithMetadataAsync(string path, SystemSnapshot previousSnapshot, Dictionary<string, string> metadata)
+    {
+        if (!Directory.Exists(path))
+            throw new SnapshotException($"Directory not found: {path}");
+
+        var currentSnapshot = await CaptureSnapshotAsync(path);
+        var difference = new ComparisonService().Compare(previousSnapshot, currentSnapshot);
+
+        var incrementalSnapshot = new SystemSnapshot
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            BasePath = path,
+            RootDirectory = new DirectorySnapshot
+            {
+                Path = path,
+                Files = [.. difference.NewFiles, .. difference.ModifiedFiles.Select(m => m.After), .. difference.DeletedFiles],
+                Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories]
+            },
+            Metadata = metadata
+        };
+
+        return incrementalSnapshot;
+    }
+
+    /// <summary>
     /// Loads a previously saved snapshot from a file.
     /// </summary>
     /// <param name="path">The path to the compressed snapshot file.</param>
@@ -141,7 +198,7 @@ public class SnapshotService : ISnapshotService
     /// Saves a system snapshot to the specified file path.
     /// </summary>
     /// <param name="snapshot">The snapshot to save.</param>
-    /// <param name="outputPath">The path where the compressed snapshot will be saved.</param>
+    /// <param="outputPath">The path where the compressed snapshot will be saved.</param>
     /// <returns>A task representing the asynchronous save operation.</returns>
     public async Task SaveSnapshotAsync(SystemSnapshot snapshot, string outputPath)
     {

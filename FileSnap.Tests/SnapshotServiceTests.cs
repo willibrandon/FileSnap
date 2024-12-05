@@ -371,6 +371,51 @@ public class SnapshotServiceTests : IDisposable
         Assert.Equal("1", insights["FileCount"]);
         Assert.Equal("1", insights["DirectoryCount"]);
     }
+        
+    public async Task CaptureSnapshotWithMetadataAsync_ShouldIncludeMetadata()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testDir, "DirWithMetadata");
+        Directory.CreateDirectory(dirPath);
+        var metadata = new Dictionary<string, string>
+        {
+            { "Author", "John Doe" },
+            { "Description", "Test directory with metadata" }
+        };
+
+        // Act
+        var snapshot = await _snapshotService.CaptureSnapshotWithMetadataAsync(dirPath, metadata);
+
+        // Assert
+        Assert.NotNull(snapshot);
+        Assert.Equal(dirPath, snapshot.BasePath);
+        Assert.Equal(metadata, snapshot.Metadata);
+    }
+
+    [Fact]
+    public async Task CaptureIncrementalSnapshotWithMetadataAsync_ShouldIncludeMetadata()
+    {
+        // Arrange
+        var dirPath = Path.Combine(_testDir, "IncrementalDirWithMetadata");
+        Directory.CreateDirectory(dirPath);
+        var initialSnapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
+        var metadata = new Dictionary<string, string>
+        {
+            { "Author", "Jane Doe" },
+            { "Description", "Incremental snapshot with metadata" }
+        };
+
+        // Add new file
+        File.WriteAllText(Path.Combine(dirPath, "newfile.txt"), "This is a new file.");
+
+        // Act
+        var incrementalSnapshot = await _snapshotService.CaptureIncrementalSnapshotWithMetadataAsync(dirPath, initialSnapshot, metadata);
+
+        // Assert
+        Assert.Single(incrementalSnapshot.RootDirectory!.Files);
+        Assert.Equal("newfile.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal(metadata, incrementalSnapshot.Metadata);
+    }
 
     private static void CreateTestDirectoryStructure(string basePath, int depth, int breadth)
     {
