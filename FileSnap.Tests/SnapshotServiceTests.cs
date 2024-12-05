@@ -372,6 +372,7 @@ public class SnapshotServiceTests : IDisposable
         Assert.Equal("1", insights["DirectoryCount"]);
     }
         
+    [Fact]
     public async Task CaptureSnapshotWithMetadataAsync_ShouldIncludeMetadata()
     {
         // Arrange
