@@ -38,4 +38,3 @@ public interface ISnapshotService
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task SaveSnapshotAsync(SystemSnapshot snapshot, string outputPath);
 }
-
