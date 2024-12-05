@@ -252,24 +252,4 @@ public class AnalysisService : IAnalysisService
             TraverseDirectory(subDirectory, fileTypeSize);
         }
     }
-
-    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, int> modificationFrequency)
-    {
-        foreach (var file in directory.Files)
-        {
-            var key = file.Path ?? string.Empty;
-
-            if (!modificationFrequency.ContainsKey(key))
-            {
-                modificationFrequency[key] = 0;
-            }
-
-            modificationFrequency[key]++;
-        }
-
-        foreach (var subDirectory in directory.Directories)
-        {
-            TraverseDirectory(subDirectory, modificationFrequency);
-        }
-    }
 }

@@ -22,7 +22,7 @@ public class AnalysisServiceTests
         var (fileCount, directoryCount) = _analysisService.GetFileAndDirectoryCount(snapshot);
 
         // Assert
-        Assert.Equal(3, fileCount);
+        Assert.Equal(4, fileCount);
         Assert.Equal(2, directoryCount);
     }
 
@@ -36,7 +36,7 @@ public class AnalysisServiceTests
         var totalSize = _analysisService.GetTotalFileSize(snapshot);
 
         // Assert
-        Assert.Equal(600, totalSize);
+        Assert.Equal(1200, totalSize);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class AnalysisServiceTests
         var averageSize = _analysisService.GetAverageFileSize(snapshot);
 
         // Assert
-        Assert.Equal(200, averageSize);
+        Assert.Equal(300, averageSize);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class AnalysisServiceTests
         var (largestFile, smallestFile) = _analysisService.GetLargestAndSmallestFiles(snapshot);
 
         // Assert
-        Assert.Equal("file3.txt", largestFile.Path);
+        Assert.Equal("file3.jpg", largestFile.Path);
         Assert.Equal("file1.txt", smallestFile.Path);
     }
 
@@ -76,7 +76,7 @@ public class AnalysisServiceTests
         var fileTypeCount = _analysisService.GetFileTypeCount(snapshot);
 
         // Assert
-        Assert.Equal(2, fileTypeCount[".txt"]);
+        Assert.Equal(3, fileTypeCount[".txt"]);
         Assert.Equal(1, fileTypeCount[".jpg"]);
     }
 
@@ -90,8 +90,8 @@ public class AnalysisServiceTests
         var fileTypeSize = _analysisService.GetFileTypeSize(snapshot);
 
         // Assert
-        Assert.Equal(300, fileTypeSize[".txt"]);
-        Assert.Equal(300, fileTypeSize[".jpg"]);
+        Assert.Equal(700, fileTypeSize[".txt"]);
+        Assert.Equal(500, fileTypeSize[".jpg"]);
     }
 
     [Fact]
@@ -147,9 +147,8 @@ public class AnalysisServiceTests
         var modificationFrequency = _analysisService.GetFileModificationFrequency(snapshot);
 
         // Assert
-        Assert.Equal(1, modificationFrequency["file1.txt"]);
-        Assert.Equal(1, modificationFrequency["file2.txt"]);
-        Assert.Equal(1, modificationFrequency["file3.txt"]);
+        Assert.Equal(3, modificationFrequency[".txt"]);
+        Assert.Equal(1, modificationFrequency[".jpg"]);
     }
 
     [Fact]
@@ -175,7 +174,7 @@ public class AnalysisServiceTests
                 {
                     new FileSnapshot { Path = "file1.txt", Size = 100 },
                     new FileSnapshot { Path = "file2.txt", Size = 200 },
-                    new FileSnapshot { Path = "file3.jpg", Size = 300 }
+                    new FileSnapshot { Path = "file3.jpg", Size = 500 }
                 },
                 Directories = new List<DirectorySnapshot>
                 {

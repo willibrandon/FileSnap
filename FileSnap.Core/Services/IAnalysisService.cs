@@ -8,6 +8,13 @@ namespace FileSnap.Core.Services;
 public interface IAnalysisService
 {
     /// <summary>
+    /// Analyzes a snapshot asynchronously.
+    /// </summary>
+    /// <param name="snapshot">The system snapshot to analyze.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task<Dictionary<string, string>> AnalyzeSnapshotAsync(SystemSnapshot snapshot);
+
+    /// <summary>
     /// Gets the count of files and directories in the snapshot.
     /// </summary>
     /// <param name="snapshot">The system snapshot.</param>
@@ -76,11 +83,4 @@ public interface IAnalysisService
     /// <param name="snapshot">The system snapshot.</param>
     /// <returns>A dictionary with file paths as keys and their modification frequencies as values.</returns>
     Dictionary<string, int> GetFileModificationFrequency(SystemSnapshot snapshot);
-
-    /// <summary>
-    /// Analyzes a snapshot asynchronously.
-    /// </summary>
-    /// <param name="snapshot">The system snapshot to analyze.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task AnalyzeSnapshotAsync(SystemSnapshot snapshot);
 }
