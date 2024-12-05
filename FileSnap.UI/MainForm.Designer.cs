@@ -32,7 +32,7 @@ namespace FileSnap.UI
             this.btnCaptureSnapshot.TabIndex = 0;
             this.btnCaptureSnapshot.Text = "Capture Snapshot";
             this.btnCaptureSnapshot.UseVisualStyleBackColor = true;
-            this.btnCaptureSnapshot.Click += new System.EventHandler(this.btnCaptureSnapshot_Click);
+            this.btnCaptureSnapshot.Click += new System.EventHandler(this.BtnCaptureSnapshot_Click);
             // 
             // btnSaveSnapshot
             // 
@@ -42,7 +42,7 @@ namespace FileSnap.UI
             this.btnSaveSnapshot.TabIndex = 1;
             this.btnSaveSnapshot.Text = "Save Snapshot";
             this.btnSaveSnapshot.UseVisualStyleBackColor = true;
-            this.btnSaveSnapshot.Click += new System.EventHandler(this.btnSaveSnapshot_Click);
+            this.btnSaveSnapshot.Click += new System.EventHandler(this.BtnSaveSnapshot_Click);
             // 
             // btnLoadSnapshot
             // 
@@ -52,7 +52,7 @@ namespace FileSnap.UI
             this.btnLoadSnapshot.TabIndex = 2;
             this.btnLoadSnapshot.Text = "Load Snapshot";
             this.btnLoadSnapshot.UseVisualStyleBackColor = true;
-            this.btnLoadSnapshot.Click += new System.EventHandler(this.btnLoadSnapshot_Click);
+            this.btnLoadSnapshot.Click += new System.EventHandler(this.BtnLoadSnapshot_Click);
             // 
             // btnCompareSnapshots
             // 
@@ -62,7 +62,7 @@ namespace FileSnap.UI
             this.btnCompareSnapshots.TabIndex = 3;
             this.btnCompareSnapshots.Text = "Compare Snapshots";
             this.btnCompareSnapshots.UseVisualStyleBackColor = true;
-            this.btnCompareSnapshots.Click += new System.EventHandler(this.btnCompareSnapshots_Click);
+            this.btnCompareSnapshots.Click += new System.EventHandler(this.BtnCompareSnapshots_Click);
             // 
             // btnRestoreSnapshot
             // 
@@ -72,7 +72,7 @@ namespace FileSnap.UI
             this.btnRestoreSnapshot.TabIndex = 4;
             this.btnRestoreSnapshot.Text = "Restore Snapshot";
             this.btnRestoreSnapshot.UseVisualStyleBackColor = true;
-            this.btnRestoreSnapshot.Click += new System.EventHandler(this.btnRestoreSnapshot_Click);
+            this.btnRestoreSnapshot.Click += new System.EventHandler(this.BtnRestoreSnapshot_Click);
             // 
             // txtSnapshotPath
             // 

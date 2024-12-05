@@ -1,7 +1,6 @@
+using FileSnap.Core.Services;
 using System;
 using System.Windows.Forms;
-using FileSnap.Core.Services;
-using FileSnap.Core.Models;
 
 namespace FileSnap.UI
 {
@@ -19,17 +18,17 @@ namespace FileSnap.UI
             _restorationService = new RestorationService();
         }
 
-        private async void btnCaptureSnapshot_Click(object sender, EventArgs e)
+        private async void BtnCaptureSnapshot_Click(object sender, EventArgs e)
         {
             var folderBrowserDialog = new FolderBrowserDialog();
             if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
             {
-                var snapshot = await _snapshotService.CaptureSnapshotAsync(folderBrowserDialog.SelectedPath);
+                await _snapshotService.CaptureSnapshotAsync(folderBrowserDialog.SelectedPath);
                 MessageBox.Show("Snapshot captured successfully.");
             }
         }
 
-        private async void btnSaveSnapshot_Click(object sender, EventArgs e)
+        private async void BtnSaveSnapshot_Click(object sender, EventArgs e)
         {
             var saveFileDialog = new SaveFileDialog { Filter = "JSON Files|*.json" };
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
@@ -40,17 +39,17 @@ namespace FileSnap.UI
             }
         }
 
-        private async void btnLoadSnapshot_Click(object sender, EventArgs e)
+        private async void BtnLoadSnapshot_Click(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog { Filter = "JSON Files|*.json" };
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                var snapshot = await _snapshotService.LoadSnapshotAsync(openFileDialog.FileName);
+                await _snapshotService.LoadSnapshotAsync(openFileDialog.FileName);
                 MessageBox.Show("Snapshot loaded successfully.");
             }
         }
 
-        private async void btnCompareSnapshots_Click(object sender, EventArgs e)
+        private async void BtnCompareSnapshots_Click(object sender, EventArgs e)
         {
             var openFileDialog1 = new OpenFileDialog { Filter = "JSON Files|*.json" };
             var openFileDialog2 = new OpenFileDialog { Filter = "JSON Files|*.json" };
@@ -60,12 +59,12 @@ namespace FileSnap.UI
                 var snapshot1 = await _snapshotService.LoadSnapshotAsync(openFileDialog1.FileName);
                 var snapshot2 = await _snapshotService.LoadSnapshotAsync(openFileDialog2.FileName);
 
-                var differences = _comparisonService.Compare(snapshot1, snapshot2);
+                _comparisonService.Compare(snapshot1, snapshot2);
                 MessageBox.Show("Snapshots compared successfully.");
             }
         }
 
-        private async void btnRestoreSnapshot_Click(object sender, EventArgs e)
+        private async void BtnRestoreSnapshot_Click(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog { Filter = "JSON Files|*.json" };
             var folderBrowserDialog = new FolderBrowserDialog();
