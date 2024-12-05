@@ -216,6 +216,51 @@ class Program
 
 This example demonstrates how to use FileSnap to implement a simple backup and restore system, including capturing, comparing, and restoring file system snapshots, with incremental snapshots.
 
+## Using the Graphical Interface
+
+A graphical interface has been developed to manage snapshots, view differences, and restore file system states. The graphical interface interacts with the existing backend services for snapshot management, comparison, and restoration.
+
+### Running the Graphical Interface
+
+To run the graphical interface, follow these steps:
+
+1. Open the `FileSnap.UI` project in your preferred IDE.
+2. Build the project to restore the necessary dependencies.
+3. Run the project. The graphical interface will launch, allowing you to capture, save, load, compare, and restore snapshots through a user-friendly interface.
+
+### Capturing a Snapshot
+
+1. Click the "Capture Snapshot" button.
+2. Select the directory you want to capture.
+3. A message will appear indicating that the snapshot was captured successfully.
+
+### Saving a Snapshot
+
+1. Enter the path of the snapshot in the "Snapshot Path" textbox.
+2. Click the "Save Snapshot" button.
+3. Choose the location and filename to save the snapshot.
+4. A message will appear indicating that the snapshot was saved successfully.
+
+### Loading a Snapshot
+
+1. Click the "Load Snapshot" button.
+2. Select the snapshot file you want to load.
+3. A message will appear indicating that the snapshot was loaded successfully.
+
+### Comparing Snapshots
+
+1. Click the "Compare Snapshots" button.
+2. Select the first snapshot file.
+3. Select the second snapshot file.
+4. A message will appear indicating that the snapshots were compared successfully.
+
+### Restoring a Snapshot
+
+1. Click the "Restore Snapshot" button.
+2. Select the snapshot file you want to restore.
+3. Select the directory where you want to restore the snapshot.
+4. A message will appear indicating that the snapshot was restored successfully.
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on GitHub.
