@@ -128,7 +128,7 @@ public class RestorationServiceTests : IDisposable
         Directory.CreateDirectory(dirPath);
         File.WriteAllText(Path.Combine(dirPath, "file5.txt"), "This is a test file.");
         var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
-        snapshot.RootDirectory!.Files[0].CreatedAt = DateTime.MinValue; // Invalid creation time
+        snapshot.RootDirectory!.Files[0].Metadata.CreatedAt = DateTime.MinValue; // Invalid creation time
         var snapshotPath = Path.Combine(_testDir, "snapshot.json");
         await _snapshotService.SaveSnapshotAsync(snapshot, snapshotPath);
 

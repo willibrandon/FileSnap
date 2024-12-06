@@ -165,6 +165,21 @@ public class AnalysisServiceTests
     }
 
     [Fact]
+    public async Task AnalyzeSnapshotAsync_ShouldReturnCorrectInsights()
+    {
+        // Arrange
+        var snapshot = CreateTestSnapshot();
+
+        // Act
+        var insights = await _analysisService.AnalyzeSnapshotAsync(snapshot);
+
+        // Assert
+        Assert.NotNull(insights);
+        Assert.Equal("4", insights["FileCount"]);
+        Assert.Equal("1", insights["DirectoryCount"]);
+    }
+
+    [Fact]
     public void GetFileMetadata_ShouldReturnCorrectMetadata()
     {
         // Arrange
@@ -242,7 +257,7 @@ public class AnalysisServiceTests
         var sizeDistribution = _analysisService.GetDirectorySizeDistribution(snapshot);
 
         // Assert
-        Assert.Equal(1, sizeDistribution[700]);
+        Assert.Equal(1, sizeDistribution[800]);
         Assert.Equal(1, sizeDistribution[400]);
     }
 

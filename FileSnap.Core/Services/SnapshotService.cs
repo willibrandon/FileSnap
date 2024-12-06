@@ -105,9 +105,9 @@ public class SnapshotService : ISnapshotService
             BasePath = path,
             RootDirectory = new DirectorySnapshot
             {
-                Path = path,
                 Files = [.. difference.NewFiles, .. difference.ModifiedFiles.Select(m => m.After), .. difference.DeletedFiles],
-                Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories]
+                Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories],
+                Metadata = new() { Path = path },
             }
         };
 
@@ -132,7 +132,7 @@ public class SnapshotService : ISnapshotService
             CreatedAt = DateTime.UtcNow,
             BasePath = path,
             RootDirectory = await CaptureDirectoryAsync(path),
-            AdditionalMetadata = metadata,
+            Metadata = metadata,
         };
 
         return snapshot;
@@ -161,11 +161,11 @@ public class SnapshotService : ISnapshotService
             BasePath = path,
             RootDirectory = new DirectorySnapshot
             {
-                Path = path,
                 Files = [.. difference.NewFiles, .. difference.ModifiedFiles.Select(m => m.After), .. difference.DeletedFiles],
-                Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories]
+                Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories],
+                Metadata = new() { Path = path },
             },
-            AdditionalMetadata = metadata,
+            Metadata = metadata,
         };
 
         return incrementalSnapshot;
@@ -222,51 +222,12 @@ public class SnapshotService : ISnapshotService
         await File.WriteAllTextAsync(finalPath, json);
     }
 
-    /// <summary>
-    /// Analyzes a snapshot and provides insights.
-    /// </summary>
-    /// <param name="snapshot">The snapshot to analyze.</param>
-    /// <returns>A task representing the asynchronous analysis operation. The task result contains the analysis insights.</returns>
-    public async Task<Dictionary<string, string>> AnalyzeSnapshotAsync(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot);
-
-        var insights = new Dictionary<string, string>();
-
-        var fileCount = 0;
-        var directoryCount = 0;
-
-        void AnalyzeDirectory(DirectorySnapshot directory)
-        {
-            fileCount += directory.Files.Count;
-            directoryCount += directory.Directories.Count;
-
-            foreach (var subDirectory in directory.Directories)
-            {
-                AnalyzeDirectory(subDirectory);
-            }
-        }
-
-        if (snapshot.RootDirectory != null)
-        {
-            AnalyzeDirectory(snapshot.RootDirectory);
-        }
-
-        insights["FileCount"] = fileCount.ToString();
-        insights["DirectoryCount"] = directoryCount.ToString();
-
-        // Add more analysis as needed
-
-        return await Task.FromResult(insights);
-    }
-
     private async Task<DirectorySnapshot> CaptureDirectoryAsync(string path)
     {
         var dirInfo = new DirectoryInfo(path);
 
         var snapshot = new DirectorySnapshot
         {
-            Path = path,
             Metadata = new DirectoryMetadata
             {
                 Path = path,

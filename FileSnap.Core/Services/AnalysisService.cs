@@ -42,31 +42,6 @@ public class AnalysisService : IAnalysisService
     }
 
     /// <inheritdoc />
-    public (int fileCount, int directoryCount) GetFileAndDirectoryCount(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
-
-        int fileCount = 0;
-        int directoryCount = 0;
-
-        TraverseDirectory(snapshot.RootDirectory, ref fileCount, ref directoryCount);
-
-        return (fileCount, directoryCount);
-    }
-
-    /// <inheritdoc />
-    public long GetTotalFileSize(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
-
-        long totalSize = 0;
-
-        TraverseDirectory(snapshot.RootDirectory, ref totalSize);
-
-        return totalSize;
-    }
-
-    /// <inheritdoc />
     public double GetAverageFileSize(SystemSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
@@ -77,59 +52,6 @@ public class AnalysisService : IAnalysisService
         TraverseDirectory(snapshot.RootDirectory, ref totalSize, ref fileCount);
 
         return fileCount == 0 ? 0 : (double)totalSize / fileCount;
-    }
-
-    /// <inheritdoc />
-    public (FileSnapshot largestFile, FileSnapshot smallestFile) GetLargestAndSmallestFiles(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
-
-        FileSnapshot? largestFile = null;
-        FileSnapshot? smallestFile = null;
-
-        TraverseDirectory(snapshot.RootDirectory, ref largestFile, ref smallestFile);
-
-        return (largestFile!, smallestFile!);
-    }
-
-    /// <inheritdoc />
-    public Dictionary<string, int> GetFileTypeCount(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
-
-        var fileTypeCount = new Dictionary<string, int>();
-
-        TraverseDirectory(snapshot.RootDirectory, fileTypeCount);
-
-        return fileTypeCount;
-    }
-
-    /// <inheritdoc />
-    public Dictionary<string, long> GetFileTypeSize(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
-
-        var fileTypeSize = new Dictionary<string, long>();
-
-        TraverseDirectory(snapshot.RootDirectory, fileTypeSize);
-
-        return fileTypeSize;
-    }
-
-    /// <inheritdoc />
-    public string GetMostCommonFileType(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
-
-        var fileTypeCount = GetFileTypeCount(snapshot);
-
-        return fileTypeCount.OrderByDescending(kvp => kvp.Value).FirstOrDefault().Key;
-    }
-
-    /// <inheritdoc />
-    public (int addedFiles, int deletedFiles, int modifiedFiles) GetFileChanges(SnapshotDifference difference)
-    {
-        return (difference.NewFiles.Count, difference.DeletedFiles.Count, difference.ModifiedFiles.Count);
     }
 
     /// <inheritdoc />
@@ -151,16 +73,6 @@ public class AnalysisService : IAnalysisService
     }
 
     /// <summary>
-    /// Retrieves metadata for a given file.
-    /// </summary>
-    public FileMetadata GetFileMetadata(FileSnapshot file)
-    {
-        ArgumentNullException.ThrowIfNull(file);
-
-        return file.Metadata;
-    }
-
-    /// <summary>
     /// Retrieves metadata for a given directory.
     /// </summary>
     public DirectoryMetadata GetDirectoryMetadata(DirectorySnapshot directory)
@@ -168,20 +80,6 @@ public class AnalysisService : IAnalysisService
         ArgumentNullException.ThrowIfNull(directory);
 
         return directory.Metadata;
-    }
-
-    /// <summary>
-    /// Analyzes file size distribution in the snapshot.
-    /// </summary>
-    public Dictionary<long, int> GetFileSizeDistribution(SystemSnapshot snapshot)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
-
-        var sizeDistribution = new Dictionary<long, int>();
-
-        TraverseDirectory(snapshot.RootDirectory, sizeDistribution);
-
-        return sizeDistribution;
     }
 
     /// <summary>
@@ -212,7 +110,109 @@ public class AnalysisService : IAnalysisService
         return attributeDistribution;
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, ref int fileCount, ref int directoryCount)
+    /// <inheritdoc />
+    public (int addedFiles, int deletedFiles, int modifiedFiles) GetFileChanges(SnapshotDifference difference)
+    {
+        return (difference.NewFiles.Count, difference.DeletedFiles.Count, difference.ModifiedFiles.Count);
+    }
+
+    /// <summary>
+    /// Retrieves metadata for a given file.
+    /// </summary>
+    public FileMetadata GetFileMetadata(FileSnapshot file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+
+        return file.Metadata;
+    }
+
+    /// <inheritdoc />
+    public (int fileCount, int directoryCount) GetFileAndDirectoryCount(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        int fileCount = 0;
+        int directoryCount = 0;
+
+        TraverseDirectory(snapshot.RootDirectory, ref fileCount, ref directoryCount);
+
+        return (fileCount, directoryCount);
+    }
+
+    /// <summary>
+    /// Analyzes file size distribution in the snapshot.
+    /// </summary>
+    public Dictionary<long, int> GetFileSizeDistribution(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        var sizeDistribution = new Dictionary<long, int>();
+
+        TraverseDirectory(snapshot.RootDirectory, sizeDistribution);
+
+        return sizeDistribution;
+    }
+
+    /// <inheritdoc />
+    public Dictionary<string, int> GetFileTypeCount(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        var fileTypeCount = new Dictionary<string, int>();
+
+        TraverseDirectory(snapshot.RootDirectory, fileTypeCount);
+
+        return fileTypeCount;
+    }
+
+    /// <inheritdoc />
+    public Dictionary<string, long> GetFileTypeSize(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        var fileTypeSize = new Dictionary<string, long>();
+
+        TraverseDirectory(snapshot.RootDirectory, fileTypeSize);
+
+        return fileTypeSize;
+    }
+
+    /// <inheritdoc />
+    public (FileSnapshot largestFile, FileSnapshot smallestFile) GetLargestAndSmallestFiles(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        FileSnapshot? largestFile = null;
+        FileSnapshot? smallestFile = null;
+
+        TraverseDirectory(snapshot.RootDirectory, ref largestFile, ref smallestFile);
+
+        return (largestFile!, smallestFile!);
+    }
+
+    /// <inheritdoc />
+    public string GetMostCommonFileType(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        var fileTypeCount = GetFileTypeCount(snapshot);
+
+        return fileTypeCount.OrderByDescending(kvp => kvp.Value).FirstOrDefault().Key;
+    }
+
+    /// <inheritdoc />
+    public long GetTotalFileSize(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        long totalSize = 0;
+
+        TraverseDirectory(snapshot.RootDirectory, ref totalSize);
+
+        return totalSize;
+    }
+
+    private void TraverseDirectory(DirectorySnapshot directory, ref int fileCount, ref int directoryCount)
     {
         directoryCount++;
 
@@ -227,7 +227,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, ref long totalSize)
+    private void TraverseDirectory(DirectorySnapshot directory, ref long totalSize)
     {
         foreach (var file in directory.Files)
         {
@@ -240,7 +240,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, ref long totalSize, ref int fileCount)
+    private void TraverseDirectory(DirectorySnapshot directory, ref long totalSize, ref int fileCount)
     {
         foreach (var file in directory.Files)
         {
@@ -254,7 +254,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, ref FileSnapshot? largestFile, ref FileSnapshot? smallestFile)
+    private void TraverseDirectory(DirectorySnapshot directory, ref FileSnapshot? largestFile, ref FileSnapshot? smallestFile)
     {
         foreach (var file in directory.Files)
         {
@@ -275,7 +275,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, int> fileTypeCount)
+    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, int> fileTypeCount)
     {
         foreach (var file in directory.Files)
         {
@@ -296,7 +296,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, long> fileTypeSize)
+    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<string, long> fileTypeSize)
     {
         foreach (var file in directory.Files)
         {
@@ -316,16 +316,17 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<long, int> sizeDistribution)
+    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<long, int> sizeDistribution)
     {
         foreach (var file in directory.Files)
         {
-            if (!sizeDistribution.ContainsKey(file.Metadata.Size))
+            if (!sizeDistribution.TryGetValue(file.Metadata.Size, out int value))
             {
-                sizeDistribution[file.Metadata.Size] = 0;
+                value = 0;
+                sizeDistribution[file.Metadata.Size] = value;
             }
 
-            sizeDistribution[file.Metadata.Size]++;
+            sizeDistribution[file.Metadata.Size] = ++value;
         }
 
         foreach (var subDirectory in directory.Directories)
@@ -334,17 +335,18 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<long, int> sizeDistribution, bool isDirectory)
+    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<long, int> sizeDistribution, bool isDirectory)
     {
-        if (isDirectory)
+       if (isDirectory)
         {
             long directorySize = directory.Files.Sum(file => file.Metadata.Size);
-            if (!sizeDistribution.ContainsKey(directorySize))
+            if (!sizeDistribution.TryGetValue(directorySize, out int value))
             {
-                sizeDistribution[directorySize] = 0;
+                value = 0;
+                sizeDistribution[directorySize] = value;
             }
 
-            sizeDistribution[directorySize]++;
+            sizeDistribution[directorySize] = ++value;
         }
 
         foreach (var subDirectory in directory.Directories)
@@ -353,16 +355,17 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<FileAttributes, int> attributeDistribution)
+    private void TraverseDirectory(DirectorySnapshot directory, Dictionary<FileAttributes, int> attributeDistribution)
     {
         foreach (var file in directory.Files)
         {
-            if (!attributeDistribution.ContainsKey(file.Metadata.Attributes))
+            if (!attributeDistribution.TryGetValue(file.Metadata.Attributes, out int value))
             {
-                attributeDistribution[file.Metadata.Attributes] = 0;
+                value = 0;
+                attributeDistribution[file.Metadata.Attributes] = value;
             }
 
-            attributeDistribution[file.Metadata.Attributes]++;
+            attributeDistribution[file.Metadata.Attributes] = ++value;
         }
 
         foreach (var subDirectory in directory.Directories)

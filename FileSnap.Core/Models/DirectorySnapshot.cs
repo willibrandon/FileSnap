@@ -11,11 +11,6 @@ public class DirectorySnapshot
     public bool IsDeleted { get; set; }
 
     /// <summary>
-    /// Gets or sets the directory path.
-    /// </summary>
-    public string? Path { get; set; }
-
-    /// <summary>
     /// Gets or sets the list of file snapshots in the directory.
     /// </summary>
     public List<FileSnapshot> Files { get; set; } = [];

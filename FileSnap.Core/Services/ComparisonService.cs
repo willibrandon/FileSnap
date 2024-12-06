@@ -36,19 +36,19 @@ public class ComparisonService : IComparisonService
     {
         // Compare files.
         var beforeFiles = before.Files
-            .Where(f => f.Path != null)
-            .ToDictionary(f => f.Path!);
+            .Where(f => f.Metadata.Path != null)
+            .ToDictionary(f => f.Metadata.Path!);
         var afterFiles = after.Files
-            .Where(f => f.Path != null)
-            .ToDictionary(f => f.Path!);
+            .Where(f => f.Metadata.Path != null)
+            .ToDictionary(f => f.Metadata.Path!);
 
         foreach (var afterFile in afterFiles.Values)
         {
-            if (!beforeFiles.TryGetValue(afterFile.Path!, out var beforeFile))
+            if (!beforeFiles.TryGetValue(afterFile.Metadata.Path!, out var beforeFile))
             {
                 difference.NewFiles.Add(afterFile);
             }
-            else if (beforeFile.Hash != afterFile.Hash)
+            else if (beforeFile.Metadata.Hash != afterFile.Metadata.Hash)
             {
                 difference.ModifiedFiles.Add((beforeFile, afterFile));
             }
@@ -56,7 +56,7 @@ public class ComparisonService : IComparisonService
 
         foreach (var beforeFile in beforeFiles.Values)
         {
-            if (!afterFiles.ContainsKey(beforeFile.Path!))
+            if (!afterFiles.ContainsKey(beforeFile.Metadata.Path!))
             {
                 beforeFile.IsDeleted = true;
                 difference.DeletedFiles.Add(beforeFile);
@@ -65,20 +65,20 @@ public class ComparisonService : IComparisonService
 
         // Compare directories.
         var beforeDirs = before.Directories
-            .Where(d => d.Path != null)
-            .ToDictionary(d => d.Path!);
+            .Where(d => d.Metadata.Path != null)
+            .ToDictionary(d => d.Metadata.Path!);
         var afterDirs = after.Directories
-            .Where(d => d.Path != null)
-            .ToDictionary(d => d.Path!);
+            .Where(d => d.Metadata.Path != null)
+            .ToDictionary(d => d.Metadata.Path!);
 
         foreach (var afterDir in afterDirs.Values)
         {
-            if (afterDir.Path == null)
+            if (afterDir.Metadata.Path == null)
             {
                 continue;
             }
 
-            if (!beforeDirs.TryGetValue(afterDir.Path, out var beforeDir))
+            if (!beforeDirs.TryGetValue(afterDir.Metadata.Path, out var beforeDir))
             {
                 difference.NewDirectories.Add(afterDir);
             }
@@ -86,7 +86,8 @@ public class ComparisonService : IComparisonService
             {
                 CompareDirectories(beforeDir, afterDir, difference);
 
-                if (beforeDir.CreatedAt != afterDir.CreatedAt || beforeDir.Attributes != afterDir.Attributes)
+                if (beforeDir.Metadata.CreatedAt != afterDir.Metadata.CreatedAt 
+                    || beforeDir.Metadata.Attributes != afterDir.Metadata.Attributes)
                 {
                     difference.ModifiedDirectories.Add((beforeDir, afterDir));
                 }
@@ -95,12 +96,12 @@ public class ComparisonService : IComparisonService
 
         foreach (var beforeDir in beforeDirs.Values)
         {
-            if (beforeDir.Path == null)
+            if (beforeDir.Metadata.Path == null)
             {
                 continue;
             }
 
-            if (!afterDirs.ContainsKey(beforeDir.Path))
+            if (!afterDirs.ContainsKey(beforeDir.Metadata.Path))
             {
                 beforeDir.IsDeleted = true;
                 difference.DeletedDirectories.Add(beforeDir);
