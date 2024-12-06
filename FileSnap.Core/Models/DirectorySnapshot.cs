@@ -11,11 +11,6 @@ public class DirectorySnapshot
     public bool IsDeleted { get; set; }
 
     /// <summary>
-    /// Gets or sets the directory path.
-    /// </summary>
-    public string? Path { get; set; }
-
-    /// <summary>
     /// Gets or sets the list of file snapshots in the directory.
     /// </summary>
     public List<FileSnapshot> Files { get; set; } = [];
@@ -26,13 +21,7 @@ public class DirectorySnapshot
     public List<DirectorySnapshot> Directories { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets the creation time of the directory.
+    /// Gets or sets the directory metadata.
     /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Gets or sets the directory attributes.
-    /// </summary>
-    public FileAttributes Attributes { get; set; }
+    public DirectoryMetadata Metadata { get; set; } = new DirectoryMetadata();
 }
-

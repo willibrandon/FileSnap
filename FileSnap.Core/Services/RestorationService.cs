@@ -41,10 +41,10 @@ public class RestorationService : IRestorationService
     /// </summary>
     private async Task RestoreDirectoryAsync(DirectorySnapshot directorySnapshot, string targetPath)
     {
-        if (directorySnapshot.Path == null)
+        if (directorySnapshot.Metadata.Path == null)
             throw new SnapshotException("Directory snapshot path is null.");
 
-        var targetDir = Path.Combine(targetPath, directorySnapshot.Path);
+        var targetDir = Path.Combine(targetPath, directorySnapshot.Metadata.Path);
 
         if (directorySnapshot.IsDeleted)
         {
@@ -77,10 +77,10 @@ public class RestorationService : IRestorationService
         if (fileSnapshot.Content == null)
             throw new SnapshotException("File snapshot content is null.");
 
-        if (fileSnapshot.Path == null)
+        if (fileSnapshot.Metadata.Path == null)
             throw new SnapshotException("File snapshot path is null.");
 
-        var targetFile = Path.Combine(targetPath, Path.GetFileName(fileSnapshot.Path));
+        var targetFile = Path.Combine(targetPath, Path.GetFileName(fileSnapshot.Metadata.Path));
 
         if (fileSnapshot.IsDeleted)
         {
@@ -102,19 +102,19 @@ public class RestorationService : IRestorationService
         // Set file attributes and timestamps.
         try
         {
-            File.SetAttributes(targetFile, fileSnapshot.Attributes);
+            File.SetAttributes(targetFile, fileSnapshot.Metadata.Attributes);
         }
         catch { }
 
         try
         {
-            File.SetCreationTimeUtc(targetFile, fileSnapshot.CreatedAt);
+            File.SetCreationTimeUtc(targetFile, fileSnapshot.Metadata.CreatedAt);
         }
         catch { }
 
         try
         {
-            File.SetLastWriteTimeUtc(targetFile, fileSnapshot.LastModified);
+            File.SetLastWriteTimeUtc(targetFile, fileSnapshot.Metadata.LastModified);
         }
         catch { }
     }

@@ -62,6 +62,40 @@ var incrementalSnapshot = await snapshotService.CaptureIncrementalSnapshotAsync(
 await snapshotService.SaveSnapshotAsync(incrementalSnapshot, "incrementalSnapshot.json");
 ```
 
+### Capturing a Snapshot with Metadata
+
+```csharp
+using FileSnap.Core.Services;
+using FileSnap.Core.Models;
+
+var snapshotService = new SnapshotService(new HashingService());
+var metadata = new Dictionary<string, string>
+{
+    { "Author", "John Doe" },
+    { "Description", "Test file" }
+}
+var snapshot = await snapshotService.CaptureSnapshotWithMetadataAsync("path/to/directory", metadata);
+await snapshotService.SaveSnapshotAsync(snapshot, "snapshot_with_metadata.json");
+```
+
+### Capturing an Incremental Snapshot with Metadata
+
+```csharp
+using FileSnap.Core.Services;
+using FileSnap.Core.Models;
+
+var snapshotService = new SnapshotService(new HashingService());
+var previousSnapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
+var metadata = new Dictionary<string, string>
+    {
+        { "Author", "Jane Doe" },
+        { "Description", "Incremental snapshot with metadata" }
+    }
+// Make some changes to the directory...
+var incrementalSnapshot = await snapshotService.CaptureIncrementalSnapshotWithMetadataAsync("path/to/directory", previousSnapshot, metadata);
+await snapshotService.SaveSnapshotAsync(incrementalSnapshot, "incremental_snapshot_with_metadata.json");
+```
+
 ### Loading and Comparing Snapshots
 
 ```csharp
@@ -78,20 +112,56 @@ var difference = comparisonService.Compare(snapshot1, snapshot2);
 Console.WriteLine("New Files:");
 foreach (var file in difference.NewFiles)
 {
-    Console.WriteLine(file.Path);
+    Console.WriteLine(file.Metadata.Path);
 }
 
 Console.WriteLine("Modified Files:");
 foreach (var (before, after) in difference.ModifiedFiles)
 {
-    Console.WriteLine($"{before.Path} -> {after.Path}");
+    Console.WriteLine($"{before.Metadata.Path} -> {after.Metadata.Path}");
 }
 
 Console.WriteLine("Deleted Files:");
 foreach (var file in difference.DeletedFiles)
 {
-    Console.WriteLine(file.Path);
+    Console.WriteLine(file.Metadata.Path);
 }
+```
+
+### Analyzing a Snapshot
+
+```csharp
+using FileSnap.Core.Services;
+
+var snapshotService = new SnapshotService(new HashingService());
+var analysisService = new AnalysisService();
+
+var snapshot = await snapshotService.LoadSnapshotAsync("snapshot.json");
+
+var insights = await analysisService.AnalyzeSnapshotAsync(snapshot);
+
+Console.WriteLine("File Count: " + insights["FileCount"]);
+Console.WriteLine("Directory Count: " + insights["DirectoryCount"]);
+```
+
+### Analyzing Snapshot File and Directory Metadata
+
+```csharp
+using FileSnap.Core.Services;
+using FileSnap.Core.Models;
+
+var snapshotService = new SnapshotService(new HashingService());
+var analysisService = new AnalysisService();
+
+var snapshot = await snapshotService.LoadSnapshotAsync("snapshot.json");
+
+var fileMetadata = analysisService.GetFileMetadata(snapshot.RootDirectory.Files[0]);
+var directoryMetadata = analysisService.GetDirectoryMetadata(snapshot.RootDirectory);
+
+Console.WriteLine("File Path: " + fileMetadata.Path);
+Console.WriteLine("File Size: " + fileMetadata.Size);
+Console.WriteLine("Directory Path: " + directoryMetadata.Path);
+Console.WriteLine("Directory Created At: " + directoryMetadata.CreatedAt);
 ```
 
 ### Restoring a Snapshot

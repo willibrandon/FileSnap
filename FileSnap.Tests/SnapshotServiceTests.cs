@@ -64,8 +64,8 @@ public class SnapshotServiceTests : IDisposable
         Assert.NotNull(snapshot);
         Assert.Equal(dirPath, snapshot.BasePath);
         Assert.Equal(2, snapshot.RootDirectory!.Directories.Count);
-        Assert.Equal("SubDirA", Path.GetFileName(snapshot.RootDirectory.Directories[0].Path));
-        Assert.Equal("SubDirB", Path.GetFileName(snapshot.RootDirectory.Directories[1].Path));
+        Assert.Equal("SubDirA", Path.GetFileName(snapshot.RootDirectory.Directories[0].Metadata.Path));
+        Assert.Equal("SubDirB", Path.GetFileName(snapshot.RootDirectory.Directories[1].Metadata.Path));
     }
 
     [Fact]
@@ -84,8 +84,8 @@ public class SnapshotServiceTests : IDisposable
         Assert.NotNull(snapshot);
         Assert.Equal(dirPath, snapshot.BasePath);
         Assert.Equal(2, snapshot.RootDirectory!.Files.Count);
-        Assert.Equal("file1.txt", Path.GetFileName(snapshot.RootDirectory.Files[0].Path));
-        Assert.Equal("file2.txt", Path.GetFileName(snapshot.RootDirectory.Files[1].Path));
+        Assert.Equal("file1.txt", Path.GetFileName(snapshot.RootDirectory.Files[0].Metadata.Path));
+        Assert.Equal("file2.txt", Path.GetFileName(snapshot.RootDirectory.Files[1].Metadata.Path));
     }
 
     [Fact]
@@ -105,9 +105,9 @@ public class SnapshotServiceTests : IDisposable
         Assert.NotNull(snapshot);
         Assert.Equal(dirPath, snapshot.BasePath);
         Assert.Single(snapshot.RootDirectory!.Directories);
-        Assert.Equal("SubDir", Path.GetFileName(snapshot.RootDirectory.Directories[0].Path));
+        Assert.Equal("SubDir", Path.GetFileName(snapshot.RootDirectory.Directories[0].Metadata.Path));
         Assert.Single(snapshot.RootDirectory.Directories[0].Files);
-        Assert.Equal("file1.txt", Path.GetFileName(snapshot.RootDirectory.Directories[0].Files[0].Path));
+        Assert.Equal("file1.txt", Path.GetFileName(snapshot.RootDirectory.Directories[0].Files[0].Metadata.Path));
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class SnapshotServiceTests : IDisposable
         Assert.Equal(snapshot.Id, loadedSnapshot.Id);
         Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
         Assert.Single(loadedSnapshot.RootDirectory!.Files);
-        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Metadata.Path));
         Assert.Equal("This is a test file.", Encoding.UTF8.GetString(loadedSnapshot.RootDirectory.Files[0].Content!));
     }
 
@@ -229,7 +229,7 @@ public class SnapshotServiceTests : IDisposable
         Assert.Equal(snapshot.Id, loadedSnapshot.Id);
         Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
         Assert.Single(loadedSnapshot.RootDirectory!.Files);
-        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Metadata.Path));
         Assert.Equal("This is a test file.", Encoding.UTF8.GetString(loadedSnapshot.RootDirectory.Files[0].Content!));
     }
 
@@ -254,7 +254,7 @@ public class SnapshotServiceTests : IDisposable
         Assert.Equal(snapshot.Id, loadedSnapshot.Id);
         Assert.Equal(snapshot.BasePath, loadedSnapshot.BasePath);
         Assert.Single(loadedSnapshot.RootDirectory!.Files);
-        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("file1.txt", Path.GetFileName(loadedSnapshot.RootDirectory.Files[0].Metadata.Path));
         Assert.Equal("This is a test file.", Encoding.UTF8.GetString(loadedSnapshot.RootDirectory.Files[0].Content!));
     }
 
@@ -306,7 +306,7 @@ public class SnapshotServiceTests : IDisposable
 
         // Assert
         Assert.Single(incrementalSnapshot.RootDirectory!.Files);
-        Assert.Equal("newfile.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("newfile.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Metadata.Path));
     }
 
     [Fact]
@@ -327,7 +327,7 @@ public class SnapshotServiceTests : IDisposable
 
         // Assert
         Assert.Single(incrementalSnapshot.RootDirectory!.Files);
-        Assert.Equal("file.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("file.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Metadata.Path));
         Assert.True(incrementalSnapshot.RootDirectory.Files[0].IsDeleted);
     }
 
@@ -349,27 +349,8 @@ public class SnapshotServiceTests : IDisposable
 
         // Assert
         Assert.Single(incrementalSnapshot.RootDirectory!.Files);
-        Assert.Equal("file.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
-        Assert.NotEqual(initialSnapshot.RootDirectory!.Files[0].Hash, incrementalSnapshot.RootDirectory.Files[0].Hash);
-    }
-
-    [Fact]
-    public async Task AnalyzeSnapshotAsync_ShouldReturnCorrectInsights()
-    {
-        // Arrange
-        var dirPath = Path.Combine(_testDir, "AnalyzeDir");
-        Directory.CreateDirectory(dirPath);
-        File.WriteAllText(Path.Combine(dirPath, "file1.txt"), "This is a test file.");
-        Directory.CreateDirectory(Path.Combine(dirPath, "SubDir"));
-        var snapshot = await _snapshotService.CaptureSnapshotAsync(dirPath);
-
-        // Act
-        var insights = await _snapshotService.AnalyzeSnapshotAsync(snapshot);
-
-        // Assert
-        Assert.NotNull(insights);
-        Assert.Equal("1", insights["FileCount"]);
-        Assert.Equal("1", insights["DirectoryCount"]);
+        Assert.Equal("file.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Metadata.Path));
+        Assert.NotEqual(initialSnapshot.RootDirectory!.Files[0].Metadata.Hash, incrementalSnapshot.RootDirectory.Files[0].Metadata.Hash);
     }
         
     [Fact]
@@ -414,7 +395,7 @@ public class SnapshotServiceTests : IDisposable
 
         // Assert
         Assert.Single(incrementalSnapshot.RootDirectory!.Files);
-        Assert.Equal("newfile.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Path));
+        Assert.Equal("newfile.txt", Path.GetFileName(incrementalSnapshot.RootDirectory.Files[0].Metadata.Path));
         Assert.Equal(metadata, incrementalSnapshot.Metadata);
     }
 

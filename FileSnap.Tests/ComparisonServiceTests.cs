@@ -31,7 +31,7 @@ public class ComparisonServiceTests : IDisposable
         // Arrange
         var before = CreateSnapshot();
         var after = CreateSnapshot();
-        after.RootDirectory!.Files.Add(new FileSnapshot { Path = "new.txt", Hash = "hash" });
+        after.RootDirectory!.Files.Add(new FileSnapshot { Metadata = new() { Path = "new.txt", Hash = "hash" } });
 
         // Act
         var difference = _comparisonService.Compare(before, after);
@@ -47,7 +47,7 @@ public class ComparisonServiceTests : IDisposable
     {
         // Arrange
         var before = CreateSnapshot();
-        before.RootDirectory!.Files.Add(new FileSnapshot { Path = "old.txt", Hash = "hash" });
+        before.RootDirectory!.Files.Add(new FileSnapshot { Metadata = new() { Path = "old.txt", Hash = "hash" } });
         var after = CreateSnapshot();
 
         // Act
@@ -64,9 +64,9 @@ public class ComparisonServiceTests : IDisposable
     {
         // Arrange
         var before = CreateSnapshot();
-        before.RootDirectory!.Files.Add(new FileSnapshot { Path = "file.txt", Hash = "oldhash" });
+        before.RootDirectory!.Files.Add(new FileSnapshot { Metadata = new() { Path = "file.txt", Hash = "oldhash" } });
         var after = CreateSnapshot();
-        after.RootDirectory!.Files.Add(new FileSnapshot { Path = "file.txt", Hash = "newhash" });
+        after.RootDirectory!.Files.Add(new FileSnapshot { Metadata = new() { Path = "file.txt", Hash = "newhash" } });
 
         // Act
         var difference = _comparisonService.Compare(before, after);
@@ -83,7 +83,7 @@ public class ComparisonServiceTests : IDisposable
         // Arrange
         var before = CreateSnapshot();
         var after = CreateSnapshot();
-        after.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "newdir" });
+        after.RootDirectory!.Directories.Add(new DirectorySnapshot { Metadata = new() { Path = "newdir" } });
 
         // Act
         var difference = _comparisonService.Compare(before, after);
@@ -99,7 +99,7 @@ public class ComparisonServiceTests : IDisposable
     {
         // Arrange
         var before = CreateSnapshot();
-        before.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "olddir" });
+        before.RootDirectory!.Directories.Add(new DirectorySnapshot { Metadata = new() { Path = "olddir" } });
         var after = CreateSnapshot();
 
         // Act
@@ -116,9 +116,9 @@ public class ComparisonServiceTests : IDisposable
     {
         // Arrange
         var before = CreateSnapshot();
-        before.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "dir", CreatedAt = DateTime.UtcNow.AddDays(-1) });
+        before.RootDirectory!.Directories.Add(new DirectorySnapshot { Metadata = new() { Path = "dir", CreatedAt = DateTime.UtcNow.AddDays(-1) } });
         var after = CreateSnapshot();
-        after.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "dir", CreatedAt = DateTime.UtcNow });
+        after.RootDirectory!.Directories.Add(new DirectorySnapshot {Metadata = new() { Path = "dir", CreatedAt = DateTime.UtcNow } });
 
         // Act
         var difference = _comparisonService.Compare(before, after);
@@ -134,14 +134,14 @@ public class ComparisonServiceTests : IDisposable
     {
         // Arrange
         var before = CreateSnapshot();
-        before.RootDirectory!.Files.Add(new FileSnapshot { Path = "file1.txt", Hash = "hash1" });
-        before.RootDirectory!.Files.Add(new FileSnapshot { Path = "file2.txt", Hash = "hash2" });
-        before.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "dir1" });
+        before.RootDirectory!.Files.Add(new FileSnapshot {Metadata = new() { Path = "file1.txt", Hash = "hash1" } });
+        before.RootDirectory!.Files.Add(new FileSnapshot {Metadata = new() { Path = "file2.txt", Hash = "hash2" } });
+        before.RootDirectory!.Directories.Add(new DirectorySnapshot { Metadata = new() { Path = "dir1" } });
 
         var after = CreateSnapshot();
-        after.RootDirectory!.Files.Add(new FileSnapshot { Path = "file2.txt", Hash = "newhash2" }); // Modified
-        after.RootDirectory!.Files.Add(new FileSnapshot { Path = "file3.txt", Hash = "hash3" }); // New
-        after.RootDirectory!.Directories.Add(new DirectorySnapshot { Path = "dir2" }); // New
+        after.RootDirectory!.Files.Add(new FileSnapshot {Metadata = new() { Path = "file2.txt", Hash = "newhash2" } }); // Modified
+        after.RootDirectory!.Files.Add(new FileSnapshot {Metadata = new() { Path = "file3.txt", Hash = "hash3" } }); // New
+        after.RootDirectory!.Directories.Add(new DirectorySnapshot { Metadata = new() { Path = "dir2" } }); // New
 
         // Act
         var difference = _comparisonService.Compare(before, after);
@@ -160,9 +160,9 @@ public class ComparisonServiceTests : IDisposable
             BasePath = "basepath",
             RootDirectory = new DirectorySnapshot
             {
-                Path = "basepath",
                 Files = [],
-                Directories = []
+                Directories = [],
+                Metadata = new() { Path = "basepath" },
             }
         };
 }
