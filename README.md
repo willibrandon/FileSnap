@@ -128,7 +128,7 @@ foreach (var file in difference.DeletedFiles)
 }
 ```
 
-### Analyzing Snapshot Insights
+### Analyzing a Snapshot
 
 ```csharp
 using FileSnap.Core.Services;
