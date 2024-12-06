@@ -1,4 +1,4 @@
-﻿using FileSnap.Core.Exceptions;
+using FileSnap.Core.Exceptions;
 using FileSnap.Core.Models;
 using FileSnap.Core.Utilities;
 using System.Text.Json;
@@ -121,7 +121,7 @@ public class SnapshotService : ISnapshotService
     /// <param name="metadata">Additional metadata to include in the snapshot.</param>
     /// <returns>A <see cref="SystemSnapshot"/> containing the captured directory structure and metadata.</returns>
     /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
-    public async Task<SystemSnapshot> CaptureSnapshotWithMetadataAsync(string path, FileMetadata metadata)
+    public async Task<SystemSnapshot> CaptureSnapshotWithMetadataAsync(string path, Dictionary<string, string> metadata)
     {
         if (!Directory.Exists(path))
             throw new SnapshotException($"Directory not found: {path}");
@@ -132,15 +132,7 @@ public class SnapshotService : ISnapshotService
             CreatedAt = DateTime.UtcNow,
             BasePath = path,
             RootDirectory = await CaptureDirectoryAsync(path),
-            Metadata = new Dictionary<string, string>
-            {
-                { "Path", metadata.Path },
-                { "Size", metadata.Size.ToString() },
-                { "Hash", metadata.Hash },
-                { "LastModified", metadata.LastModified.ToString() },
-                { "CreatedAt", metadata.CreatedAt.ToString() },
-                { "Attributes", metadata.Attributes.ToString() }
-            }
+            AdditionalMetadata = metadata,
         };
 
         return snapshot;
@@ -154,7 +146,7 @@ public class SnapshotService : ISnapshotService
     /// <param name="metadata">Additional metadata to include in the snapshot.</param>
     /// <returns>A <see cref="SystemSnapshot"/> containing the captured incremental directory structure and metadata.</returns>
     /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
-    public async Task<SystemSnapshot> CaptureIncrementalSnapshotWithMetadataAsync(string path, SystemSnapshot previousSnapshot, FileMetadata metadata)
+    public async Task<SystemSnapshot> CaptureIncrementalSnapshotWithMetadataAsync(string path, SystemSnapshot previousSnapshot, Dictionary<string, string> metadata)
     {
         if (!Directory.Exists(path))
             throw new SnapshotException($"Directory not found: {path}");
@@ -173,15 +165,7 @@ public class SnapshotService : ISnapshotService
                 Files = [.. difference.NewFiles, .. difference.ModifiedFiles.Select(m => m.After), .. difference.DeletedFiles],
                 Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories]
             },
-            Metadata = new Dictionary<string, string>
-            {
-                { "Path", metadata.Path },
-                { "Size", metadata.Size.ToString() },
-                { "Hash", metadata.Hash },
-                { "LastModified", metadata.LastModified.ToString() },
-                { "CreatedAt", metadata.CreatedAt.ToString() },
-                { "Attributes", metadata.Attributes.ToString() }
-            }
+            AdditionalMetadata = metadata,
         };
 
         return incrementalSnapshot;

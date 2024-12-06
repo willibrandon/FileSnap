@@ -34,4 +34,9 @@ public class FileMetadata
     /// Gets or sets the file attributes.
     /// </summary>
     public FileAttributes Attributes { get; set; }
+
+    /// <summary>
+    /// Gets or sets additional metadata for the file.
+    /// </summary>
+    public Dictionary<string, string>? AdditionalMetadata { get; set; }
 }

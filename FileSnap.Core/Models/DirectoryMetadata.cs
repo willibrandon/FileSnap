@@ -29,4 +29,9 @@ public class DirectoryMetadata
     /// Gets or sets the size of the directory.
     /// </summary>
     public long Size { get; set; }
+
+    /// <summary>
+    /// Gets or sets additional metadata for the directory.
+    /// </summary>
+    public Dictionary<string, string>? AdditionalMetadata { get; set; }
 }

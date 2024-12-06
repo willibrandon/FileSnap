@@ -66,13 +66,14 @@ await snapshotService.SaveSnapshotAsync(incrementalSnapshot, "incrementalSnapsho
 
 ```csharp
 using FileSnap.Core.Services;
+using FileSnap.Core.Models;
 
 var snapshotService = new SnapshotService(new HashingService());
 var metadata = new Dictionary<string, string>
 {
     { "Author", "John Doe" },
-    { "Description", "Test directory with metadata" }
-};
+    { "Description", "Test file" }
+}
 var snapshot = await snapshotService.CaptureSnapshotWithMetadataAsync("path/to/directory", metadata);
 await snapshotService.SaveSnapshotAsync(snapshot, "snapshot_with_metadata.json");
 ```
@@ -86,10 +87,10 @@ using FileSnap.Core.Models;
 var snapshotService = new SnapshotService(new HashingService());
 var previousSnapshot = await snapshotService.CaptureSnapshotAsync("path/to/directory");
 var metadata = new Dictionary<string, string>
-{
-    { "Author", "Jane Doe" },
-    { "Description", "Incremental snapshot with metadata" }
-};
+    {
+        { "Author", "Jane Doe" },
+        { "Description", "Incremental snapshot with metadata" }
+    }
 // Make some changes to the directory...
 var incrementalSnapshot = await snapshotService.CaptureIncrementalSnapshotWithMetadataAsync("path/to/directory", previousSnapshot, metadata);
 await snapshotService.SaveSnapshotAsync(incrementalSnapshot, "incremental_snapshot_with_metadata.json");
@@ -127,7 +128,7 @@ foreach (var file in difference.DeletedFiles)
 }
 ```
 
-### Analyzing Snapshots
+### Analyzing Snapshot Insights
 
 ```csharp
 using FileSnap.Core.Services;
@@ -143,7 +144,7 @@ Console.WriteLine("File Count: " + insights["FileCount"]);
 Console.WriteLine("Directory Count: " + insights["DirectoryCount"]);
 ```
 
-### Analyzing Snapshots
+### Analyzing Snapshot File and Directory Metadata
 
 ```csharp
 using FileSnap.Core.Services;
