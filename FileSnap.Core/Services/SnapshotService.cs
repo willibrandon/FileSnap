@@ -121,7 +121,7 @@ public class SnapshotService : ISnapshotService
     /// <param name="metadata">Additional metadata to include in the snapshot.</param>
     /// <returns>A <see cref="SystemSnapshot"/> containing the captured directory structure and metadata.</returns>
     /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
-    public async Task<SystemSnapshot> CaptureSnapshotWithMetadataAsync(string path, Dictionary<string, string> metadata)
+    public async Task<SystemSnapshot> CaptureSnapshotWithMetadataAsync(string path, FileMetadata metadata)
     {
         if (!Directory.Exists(path))
             throw new SnapshotException($"Directory not found: {path}");
@@ -132,7 +132,15 @@ public class SnapshotService : ISnapshotService
             CreatedAt = DateTime.UtcNow,
             BasePath = path,
             RootDirectory = await CaptureDirectoryAsync(path),
-            Metadata = metadata
+            Metadata = new Dictionary<string, string>
+            {
+                { "Path", metadata.Path },
+                { "Size", metadata.Size.ToString() },
+                { "Hash", metadata.Hash },
+                { "LastModified", metadata.LastModified.ToString() },
+                { "CreatedAt", metadata.CreatedAt.ToString() },
+                { "Attributes", metadata.Attributes.ToString() }
+            }
         };
 
         return snapshot;
@@ -146,7 +154,7 @@ public class SnapshotService : ISnapshotService
     /// <param name="metadata">Additional metadata to include in the snapshot.</param>
     /// <returns>A <see cref="SystemSnapshot"/> containing the captured incremental directory structure and metadata.</returns>
     /// <exception cref="SnapshotException">Thrown when the specified directory does not exist.</exception>
-    public async Task<SystemSnapshot> CaptureIncrementalSnapshotWithMetadataAsync(string path, SystemSnapshot previousSnapshot, Dictionary<string, string> metadata)
+    public async Task<SystemSnapshot> CaptureIncrementalSnapshotWithMetadataAsync(string path, SystemSnapshot previousSnapshot, FileMetadata metadata)
     {
         if (!Directory.Exists(path))
             throw new SnapshotException($"Directory not found: {path}");
@@ -165,7 +173,15 @@ public class SnapshotService : ISnapshotService
                 Files = [.. difference.NewFiles, .. difference.ModifiedFiles.Select(m => m.After), .. difference.DeletedFiles],
                 Directories = [.. difference.NewDirectories, .. difference.ModifiedDirectories.Select(m => m.After), .. difference.DeletedDirectories]
             },
-            Metadata = metadata
+            Metadata = new Dictionary<string, string>
+            {
+                { "Path", metadata.Path },
+                { "Size", metadata.Size.ToString() },
+                { "Hash", metadata.Hash },
+                { "LastModified", metadata.LastModified.ToString() },
+                { "CreatedAt", metadata.CreatedAt.ToString() },
+                { "Attributes", metadata.Attributes.ToString() }
+            }
         };
 
         return incrementalSnapshot;
@@ -267,8 +283,14 @@ public class SnapshotService : ISnapshotService
         var snapshot = new DirectorySnapshot
         {
             Path = path,
-            CreatedAt = dirInfo.CreationTimeUtc,
-            Attributes = dirInfo.Attributes,
+            Metadata = new DirectoryMetadata
+            {
+                Path = path,
+                CreatedAt = dirInfo.CreationTimeUtc,
+                Attributes = dirInfo.Attributes,
+                LastModified = dirInfo.LastWriteTimeUtc,
+                Size = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length)
+            },
             Files = [],
             Directories = [],
         };
@@ -290,8 +312,8 @@ public class SnapshotService : ISnapshotService
         snapshot.Directories.AddRange(capturedDirectories);
 
         // Sort files and directories by their paths to ensure consistent order.
-        snapshot.Files = [.. snapshot.Files.OrderBy(f => f.Path)];
-        snapshot.Directories = [.. snapshot.Directories.OrderBy(d => d.Path)];
+        snapshot.Files = [.. snapshot.Files.OrderBy(f => f.Metadata.Path)];
+        snapshot.Directories = [.. snapshot.Directories.OrderBy(d => d.Metadata.Path)];
 
         return snapshot;
     }
@@ -307,13 +329,16 @@ public class SnapshotService : ISnapshotService
 
         return new FileSnapshot
         {
-            Path = file.FullName,
-            Content = content,
-            Hash = await _hashingService.ComputeHashAsync(file.FullName),
-            Size = file.Length,
-            LastModified = file.LastWriteTimeUtc,
-            CreatedAt = file.CreationTimeUtc,
-            Attributes = file.Attributes
+            Metadata = new FileMetadata
+            {
+                Path = file.FullName,
+                Size = file.Length,
+                Hash = await _hashingService.ComputeHashAsync(file.FullName),
+                LastModified = file.LastWriteTimeUtc,
+                CreatedAt = file.CreationTimeUtc,
+                Attributes = file.Attributes
+            },
+            Content = content
         };
     }
 

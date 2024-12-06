@@ -150,6 +150,68 @@ public class AnalysisService : IAnalysisService
         return modificationFrequency;
     }
 
+    /// <summary>
+    /// Retrieves metadata for a given file.
+    /// </summary>
+    public FileMetadata GetFileMetadata(FileSnapshot file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+
+        return file.Metadata;
+    }
+
+    /// <summary>
+    /// Retrieves metadata for a given directory.
+    /// </summary>
+    public DirectoryMetadata GetDirectoryMetadata(DirectorySnapshot directory)
+    {
+        ArgumentNullException.ThrowIfNull(directory);
+
+        return directory.Metadata;
+    }
+
+    /// <summary>
+    /// Analyzes file size distribution in the snapshot.
+    /// </summary>
+    public Dictionary<long, int> GetFileSizeDistribution(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        var sizeDistribution = new Dictionary<long, int>();
+
+        TraverseDirectory(snapshot.RootDirectory, sizeDistribution);
+
+        return sizeDistribution;
+    }
+
+    /// <summary>
+    /// Analyzes directory size distribution in the snapshot.
+    /// </summary>
+    public Dictionary<long, int> GetDirectorySizeDistribution(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        var sizeDistribution = new Dictionary<long, int>();
+
+        TraverseDirectory(snapshot.RootDirectory, sizeDistribution, true);
+
+        return sizeDistribution;
+    }
+
+    /// <summary>
+    /// Analyzes file attribute distribution in the snapshot.
+    /// </summary>
+    public Dictionary<FileAttributes, int> GetFileAttributeDistribution(SystemSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot.RootDirectory);
+
+        var attributeDistribution = new Dictionary<FileAttributes, int>();
+
+        TraverseDirectory(snapshot.RootDirectory, attributeDistribution);
+
+        return attributeDistribution;
+    }
+
     private static void TraverseDirectory(DirectorySnapshot directory, ref int fileCount, ref int directoryCount)
     {
         directoryCount++;
@@ -169,7 +231,7 @@ public class AnalysisService : IAnalysisService
     {
         foreach (var file in directory.Files)
         {
-            totalSize += file.Size;
+            totalSize += file.Metadata.Size;
         }
 
         foreach (var subDirectory in directory.Directories)
@@ -182,7 +244,7 @@ public class AnalysisService : IAnalysisService
     {
         foreach (var file in directory.Files)
         {
-            totalSize += file.Size;
+            totalSize += file.Metadata.Size;
             fileCount++;
         }
 
@@ -196,12 +258,12 @@ public class AnalysisService : IAnalysisService
     {
         foreach (var file in directory.Files)
         {
-            if (largestFile == null || file.Size > largestFile.Size)
+            if (largestFile == null || file.Metadata.Size > largestFile.Metadata.Size)
             {
                 largestFile = file;
             }
 
-            if (smallestFile == null || file.Size < smallestFile.Size)
+            if (smallestFile == null || file.Metadata.Size < smallestFile.Metadata.Size)
             {
                 smallestFile = file;
             }
@@ -217,7 +279,7 @@ public class AnalysisService : IAnalysisService
     {
         foreach (var file in directory.Files)
         {
-            var extension = Path.GetExtension(file.Path)?.ToLower() ?? string.Empty;
+            var extension = Path.GetExtension(file.Metadata.Path)?.ToLower() ?? string.Empty;
 
             if (!fileTypeCount.TryGetValue(extension, out int value))
             {
@@ -238,19 +300,74 @@ public class AnalysisService : IAnalysisService
     {
         foreach (var file in directory.Files)
         {
-            var extension = Path.GetExtension(file.Path)?.ToLower() ?? string.Empty;
+            var extension = Path.GetExtension(file.Metadata.Path)?.ToLower() ?? string.Empty;
 
             if (!fileTypeSize.ContainsKey(extension))
             {
                 fileTypeSize[extension] = 0;
             }
 
-            fileTypeSize[extension] += file.Size;
+            fileTypeSize[extension] += file.Metadata.Size;
         }
 
         foreach (var subDirectory in directory.Directories)
         {
             TraverseDirectory(subDirectory, fileTypeSize);
+        }
+    }
+
+    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<long, int> sizeDistribution)
+    {
+        foreach (var file in directory.Files)
+        {
+            if (!sizeDistribution.ContainsKey(file.Metadata.Size))
+            {
+                sizeDistribution[file.Metadata.Size] = 0;
+            }
+
+            sizeDistribution[file.Metadata.Size]++;
+        }
+
+        foreach (var subDirectory in directory.Directories)
+        {
+            TraverseDirectory(subDirectory, sizeDistribution);
+        }
+    }
+
+    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<long, int> sizeDistribution, bool isDirectory)
+    {
+        if (isDirectory)
+        {
+            long directorySize = directory.Files.Sum(file => file.Metadata.Size);
+            if (!sizeDistribution.ContainsKey(directorySize))
+            {
+                sizeDistribution[directorySize] = 0;
+            }
+
+            sizeDistribution[directorySize]++;
+        }
+
+        foreach (var subDirectory in directory.Directories)
+        {
+            TraverseDirectory(subDirectory, sizeDistribution, isDirectory);
+        }
+    }
+
+    private static void TraverseDirectory(DirectorySnapshot directory, Dictionary<FileAttributes, int> attributeDistribution)
+    {
+        foreach (var file in directory.Files)
+        {
+            if (!attributeDistribution.ContainsKey(file.Metadata.Attributes))
+            {
+                attributeDistribution[file.Metadata.Attributes] = 0;
+            }
+
+            attributeDistribution[file.Metadata.Attributes]++;
+        }
+
+        foreach (var subDirectory in directory.Directories)
+        {
+            TraverseDirectory(subDirectory, attributeDistribution);
         }
     }
 }

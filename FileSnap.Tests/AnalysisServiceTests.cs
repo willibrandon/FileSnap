@@ -62,8 +62,8 @@ public class AnalysisServiceTests
         var (largestFile, smallestFile) = _analysisService.GetLargestAndSmallestFiles(snapshot);
 
         // Assert
-        Assert.Equal("file3.jpg", largestFile.Path);
-        Assert.Equal("file1.txt", smallestFile.Path);
+        Assert.Equal("file3.jpg", largestFile.Metadata.Path);
+        Assert.Equal("file1.txt", smallestFile.Metadata.Path);
     }
 
     [Fact]
@@ -164,6 +164,101 @@ public class AnalysisServiceTests
         Assert.True(true); // If no exception is thrown, the test passes
     }
 
+    [Fact]
+    public void GetFileMetadata_ShouldReturnCorrectMetadata()
+    {
+        // Arrange
+        var file = new FileSnapshot
+        {
+            Metadata = new FileMetadata
+            {
+                Path = "file1.txt",
+                Size = 100,
+                Hash = "hash1",
+                LastModified = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                Attributes = FileAttributes.Normal
+            }
+        };
+
+        // Act
+        var metadata = _analysisService.GetFileMetadata(file);
+
+        // Assert
+        Assert.Equal("file1.txt", metadata.Path);
+        Assert.Equal(100, metadata.Size);
+        Assert.Equal("hash1", metadata.Hash);
+        Assert.Equal(file.Metadata.LastModified, metadata.LastModified);
+        Assert.Equal(file.Metadata.CreatedAt, metadata.CreatedAt);
+        Assert.Equal(FileAttributes.Normal, metadata.Attributes);
+    }
+
+    [Fact]
+    public void GetDirectoryMetadata_ShouldReturnCorrectMetadata()
+    {
+        // Arrange
+        var directory = new DirectorySnapshot
+        {
+            Metadata = new DirectoryMetadata
+            {
+                Path = "dir1",
+                CreatedAt = DateTime.UtcNow,
+                Attributes = FileAttributes.Directory
+            }
+        };
+
+        // Act
+        var metadata = _analysisService.GetDirectoryMetadata(directory);
+
+        // Assert
+        Assert.Equal("dir1", metadata.Path);
+        Assert.Equal(directory.Metadata.CreatedAt, metadata.CreatedAt);
+        Assert.Equal(FileAttributes.Directory, metadata.Attributes);
+    }
+
+    [Fact]
+    public void GetFileSizeDistribution_ShouldReturnCorrectDistribution()
+    {
+        // Arrange
+        var snapshot = CreateTestSnapshot();
+
+        // Act
+        var sizeDistribution = _analysisService.GetFileSizeDistribution(snapshot);
+
+        // Assert
+        Assert.Equal(1, sizeDistribution[100]);
+        Assert.Equal(1, sizeDistribution[200]);
+        Assert.Equal(1, sizeDistribution[500]);
+        Assert.Equal(1, sizeDistribution[400]);
+    }
+
+    [Fact]
+    public void GetDirectorySizeDistribution_ShouldReturnCorrectDistribution()
+    {
+        // Arrange
+        var snapshot = CreateTestSnapshot();
+
+        // Act
+        var sizeDistribution = _analysisService.GetDirectorySizeDistribution(snapshot);
+
+        // Assert
+        Assert.Equal(1, sizeDistribution[700]);
+        Assert.Equal(1, sizeDistribution[400]);
+    }
+
+    [Fact]
+    public void GetFileAttributeDistribution_ShouldReturnCorrectDistribution()
+    {
+        // Arrange
+        var snapshot = CreateTestSnapshot();
+
+        // Act
+        var attributeDistribution = _analysisService.GetFileAttributeDistribution(snapshot);
+
+        // Assert
+        Assert.Equal(4, attributeDistribution[FileAttributes.Normal]);
+    }
+
     private static SystemSnapshot CreateTestSnapshot()
     {
         return new SystemSnapshot
@@ -172,9 +267,9 @@ public class AnalysisServiceTests
             {
                 Files =
                 [
-                    new FileSnapshot { Path = "file1.txt", Size = 100 },
-                    new FileSnapshot { Path = "file2.txt", Size = 200 },
-                    new FileSnapshot { Path = "file3.jpg", Size = 500 }
+                    new FileSnapshot { Metadata = new FileMetadata { Path = "file1.txt", Size = 100, Attributes = FileAttributes.Normal } },
+                    new FileSnapshot { Metadata = new FileMetadata { Path = "file2.txt", Size = 200, Attributes = FileAttributes.Normal } },
+                    new FileSnapshot { Metadata = new FileMetadata { Path = "file3.jpg", Size = 500, Attributes = FileAttributes.Normal } }
                 ],
                 Directories =
                 [
@@ -182,7 +277,7 @@ public class AnalysisServiceTests
                     {
                         Files =
                         [
-                            new FileSnapshot { Path = "subdir/file4.txt", Size = 400 }
+                            new FileSnapshot { Metadata = new FileMetadata { Path = "subdir/file4.txt", Size = 400, Attributes = FileAttributes.Normal } }
                         ]
                     }
                 ]
@@ -194,12 +289,12 @@ public class AnalysisServiceTests
     {
         return new SnapshotDifference
         {
-            NewFiles = [new FileSnapshot { Path = "newfile.txt" }],
-            DeletedFiles = [new FileSnapshot { Path = "deletedfile.txt" }],
-            ModifiedFiles = [(new FileSnapshot { Path = "modifiedfile.txt" }, new FileSnapshot { Path = "modifiedfile.txt" })],
-            NewDirectories = [new DirectorySnapshot { Path = "newdir" }],
-            DeletedDirectories = [new DirectorySnapshot { Path = "deleteddir" }],
-            ModifiedDirectories = [ (new DirectorySnapshot { Path = "modifieddir" }, new DirectorySnapshot { Path = "modifieddir" })]
+            NewFiles = [new FileSnapshot { Metadata = new FileMetadata { Path = "newfile.txt" } }],
+            DeletedFiles = [new FileSnapshot { Metadata = new FileMetadata { Path = "deletedfile.txt" } }],
+            ModifiedFiles = [(new FileSnapshot { Metadata = new FileMetadata { Path = "modifiedfile.txt" } }, new FileSnapshot { Metadata = new FileMetadata { Path = "modifiedfile.txt" } })],
+            NewDirectories = [new DirectorySnapshot { Metadata = new DirectoryMetadata { Path = "newdir" } }],
+            DeletedDirectories = [new DirectorySnapshot { Metadata = new DirectoryMetadata { Path = "deleteddir" } }],
+            ModifiedDirectories = [ (new DirectorySnapshot { Metadata = new DirectoryMetadata { Path = "modifieddir" } }, new DirectorySnapshot { Metadata = new DirectoryMetadata { Path = "modifieddir" } })]
         };
     }
 }

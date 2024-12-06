@@ -26,13 +26,7 @@ public class DirectorySnapshot
     public List<DirectorySnapshot> Directories { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets the creation time of the directory.
+    /// Gets or sets the directory metadata.
     /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Gets or sets the directory attributes.
-    /// </summary>
-    public FileAttributes Attributes { get; set; }
+    public DirectoryMetadata Metadata { get; set; } = new DirectoryMetadata();
 }
-
