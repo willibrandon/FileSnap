@@ -34,4 +34,35 @@ public class DirectoryMetadata
     /// Gets or sets additional metadata for the directory.
     /// </summary>
     public Dictionary<string, string>? AdditionalMetadata { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user who made the change.
+    /// </summary>
+    public string? User { get; set; }
+
+    /// <summary>
+    /// Gets or sets the process that triggered the event.
+    /// </summary>
+    public string? Process { get; set; }
+
+    /// <summary>
+    /// Gets or sets the timestamp of the event.
+    /// </summary>
+    public DateTime Timestamp { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DirectoryMetadata"/> class.
+    /// </summary>
+    public DirectoryMetadata()
+    {
+        Path = string.Empty;
+        CreatedAt = DateTime.MinValue;
+        Attributes = FileAttributes.Directory;
+        LastModified = DateTime.MinValue;
+        Size = 0;
+        AdditionalMetadata = new Dictionary<string, string>();
+        User = string.Empty;
+        Process = string.Empty;
+        Timestamp = DateTime.MinValue;
+    }
 }

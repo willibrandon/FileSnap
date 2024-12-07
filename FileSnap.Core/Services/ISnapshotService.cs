@@ -22,7 +22,6 @@ public interface ISnapshotService
     /// <returns>A task that represents the asynchronous operation. The task result contains the captured incremental snapshot.</returns>
     Task<SystemSnapshot> CaptureIncrementalSnapshotAsync(string path, SystemSnapshot previousSnapshot);
 
-
     /// <summary>
     /// Loads a snapshot from the specified path.
     /// </summary>
@@ -34,7 +33,18 @@ public interface ISnapshotService
     /// Saves the snapshot to the specified output path.
     /// </summary>
     /// <param name="snapshot">The snapshot to save.</param>
-    /// <param name="outputPath">The output path to save the snapshot to.</param>
+    /// <param="outputPath">The output path to save the snapshot to.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task SaveSnapshotAsync(SystemSnapshot snapshot, string outputPath);
+
+    /// <summary>
+    /// Starts the file watcher for the specified path.
+    /// </summary>
+    /// <param name="path">The path to watch for file system changes.</param>
+    void StartFileWatcher(string path);
+
+    /// <summary>
+    /// Stops the file watcher.
+    /// </summary>
+    void StopFileWatcher();
 }
