@@ -10,6 +10,7 @@
 - **Restore Snapshots**: Restore file system states to a previous snapshot, including file content and metadata.
 - **Optimized Storage**: Uses compression to minimize storage space for snapshots.
 - **Cross-Platform**: Compatible with Windows, macOS, and Linux.
+- **Real-time Monitoring**: Monitor file system changes in real-time using platform-specific APIs (ReadDirectoryChangesW on Windows, SFEvents on MacOS, and inotify on Linux).
 
 ## Installation
 
@@ -285,6 +286,77 @@ class Program
 ```
 
 This example demonstrates how to use FileSnap to implement a simple backup and restore system, including capturing, comparing, and restoring file system snapshots, with incremental snapshots.
+
+### Real-time File System Monitoring
+
+FileSnap also provides real-time file system monitoring using platform-specific APIs (ReadDirectoryChangesW on Windows, SFEvents on MacOS, and inotify on Linux). You can configure the file watcher to handle various file events and filter events based on your preferences.
+
+#### Starting and Stopping the File Watcher
+
+```csharp
+using FileSnap.Core.Services;
+
+var snapshotService = new SnapshotService(new HashingService());
+
+// Start watching a directory for file system changes
+snapshotService.StartFileWatcher("path/to/directory");
+
+// Stop watching the directory
+snapshotService.StopFileWatcher();
+```
+
+#### Configuring File Event Handling
+
+You can configure the file watcher to handle various file events, such as file permission changes, symbolic links, file renames, file deletions, file moves, file attribute changes, file creation events, and file modifications.
+
+```csharp
+using FileSnap.Core.Services;
+
+var fileWatcherService = new FileWatcherService();
+
+// Configure file permission changes
+fileWatcherService.ConfigureFilePermissionChanges(true);
+
+// Configure symbolic links
+fileWatcherService.ConfigureSymbolicLinks(true);
+
+// Configure file renames
+fileWatcherService.ConfigureFileRenames(true);
+
+// Configure file deletions
+fileWatcherService.ConfigureFileDeletions(true);
+
+// Configure file moves
+fileWatcherService.ConfigureFileMoves(true);
+
+// Configure file attribute changes
+fileWatcherService.ConfigureFileAttributeChanges(true);
+
+// Configure file creation events
+fileWatcherService.ConfigureFileCreationEvents(true);
+
+// Configure file modifications
+fileWatcherService.ConfigureFileModifications(true);
+```
+
+#### Configuring Event Filtering
+
+You can filter file events based on file extensions, directories, or specific file names.
+
+```csharp
+using FileSnap.Core.Services;
+
+var fileWatcherService = new FileWatcherService();
+
+var filterOptions = new EventFilterOptions
+{
+    FileExtensions = new List<string> { ".txt" },
+    Directories = new List<string> { "path/to/directory" },
+    FileNames = new List<string> { "test.txt" }
+};
+
+fileWatcherService.ConfigureEventFiltering(filterOptions);
+```
 
 ## Using the Graphical Interface
 

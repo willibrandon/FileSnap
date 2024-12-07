@@ -17,6 +17,7 @@ public class SnapshotService : ISnapshotService
     private readonly ICompressionService _compressionService;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly bool _isCompressionEnabled;
+    private readonly IFileWatcherService _fileWatcherService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SnapshotService"/> class with the default hashing service.
@@ -59,6 +60,7 @@ public class SnapshotService : ISnapshotService
         _compressionService = compressionService ?? new BrotliCompressionService();
         _jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true };
         _isCompressionEnabled = isCompressionEnabled;
+        _fileWatcherService = new FileWatcherService();
     }
 
     /// <summary>
@@ -313,5 +315,22 @@ public class SnapshotService : ISnapshotService
         });
 
         Parallel.ForEach(directorySnapshot.Directories, DecompressContent);
+    }
+
+    /// <summary>
+    /// Starts the file watcher for the specified path.
+    /// </summary>
+    /// <param name="path">The path to watch for file system changes.</param>
+    public void StartFileWatcher(string path)
+    {
+        _fileWatcherService.StartWatching(path);
+    }
+
+    /// <summary>
+    /// Stops the file watcher.
+    /// </summary>
+    public void StopFileWatcher()
+    {
+        _fileWatcherService.StopWatching();
     }
 }
